@@ -38,6 +38,7 @@ public class Source
 	public Source(Vector3f position, Vector3f velocity, float gain, float pitch, float refDist,
 				  float rollOff, boolean isRelative)
 	{
+		this.sourceId = NULL_SOURCE;
 
 		this.velocity = velocity;
 		this.position = position;
@@ -47,7 +48,6 @@ public class Source
 		this.refDist = refDist;
 		this.rollOff = rollOff;
 		this.isRelative = isRelative;
-		this.sourceId = -1;
 
 		this.lastPlayed = Engine.getTime();
 	}
@@ -57,8 +57,11 @@ public class Source
 	 */
 	public void updateSpacialParams()
 	{
-		AL10.alSource3f(sourceId, AL10.AL_POSITION, position.x(), position.y(), position.z());
-		AL10.alSource3f(sourceId, AL10.AL_VELOCITY, velocity.x(), velocity.y(), velocity.z());
+		if (hasSourceId())
+		{
+			AL10.alSource3f(sourceId, AL10.AL_POSITION, position.x(), position.y(), position.z());
+			AL10.alSource3f(sourceId, AL10.AL_VELOCITY, velocity.x(), velocity.y(), velocity.z());
+		}
 	}
 
 	/**
@@ -66,11 +69,14 @@ public class Source
 	 */
 	public void updateSourceParams()
 	{
-		AL10.alSourcef(sourceId, AL10.AL_GAIN, gain);
-		AL10.alSourcef(sourceId, AL10.AL_PITCH, pitch);
-		AL10.alSourcef(sourceId, AL10.AL_ROLLOFF_FACTOR, rollOff);
-		AL10.alSourcef(sourceId, AL10.AL_REFERENCE_DISTANCE, refDist);
-		//AL10.alSourcei(sourceId, AL10.AL_SOURCE_RELATIVE, isRelative ? AL10.AL_TRUE : AL10.AL_FALSE);
+		if (hasSourceId())
+		{
+			AL10.alSourcef(sourceId, AL10.AL_GAIN, gain);
+			AL10.alSourcef(sourceId, AL10.AL_PITCH, pitch);
+			AL10.alSourcef(sourceId, AL10.AL_ROLLOFF_FACTOR, rollOff);
+			AL10.alSourcef(sourceId, AL10.AL_REFERENCE_DISTANCE, refDist);
+			//AL10.alSourcei(sourceId, AL10.AL_SOURCE_RELATIVE, isRelative ? AL10.AL_TRUE : AL10.AL_FALSE);
+		}
 	}
 
 	/**

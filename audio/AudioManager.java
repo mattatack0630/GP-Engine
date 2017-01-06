@@ -17,6 +17,7 @@ import java.util.Map;
 public class AudioManager
 {
 	private static final float SOURCE_TIME_OUT = 5.0f;
+
 	private static Map<Source, Sound> playingSources;
 
 	/**
@@ -25,9 +26,11 @@ public class AudioManager
 	 */
 	public static void init()
 	{
+		playingSources = new HashMap<>();
+
+		// openAL prep
 		createOpenAL();
 		AL10.alDistanceModel(AL10.AL_INVERSE_DISTANCE_CLAMPED);
-		playingSources = new HashMap<>();
 	}
 
 	/**
