@@ -3,29 +3,212 @@ package resources;
 import utils.VaoLoader;
 import utils.VaoObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+/**
+ * created by mjmcc 1/6/2017
+ * <p>
+ * The ResourceManager is a static util class that handles
+ * loading and unloading resources.
+ */
 
 public class ResourceManager
 {
-	public static final String DEF_INFO_LOC = "defualt_info";
-	public static final String DEF_TEX_LOC = "defualt_texture";
-	public static final String DEF_NORM_LOC = "defualt_normal";
+	// Maximum amount of resources that can be loaded/unloaded per update
+	private static final int MAX_LOADS_PER_CYCLE = 3;
 
-	private static float[] quadPositions = new float[]{-.5f, .5f, 0, -.5f, -.5f, 0, .5f, .5f, 0, .5f, -.5f, 0};
-	private static float[] screenPositions = new float[]{-1f, 1f, 0, -1f, -1f, 0, 1f, 1f, 0, 1f, -1f, 0};
+	// Map containing loaded resources and their names as keys
+	private static Map<String, Resource> resourceNameMap;
 
-	private static VaoObject GuiQuad = VaoLoader.loadModel(3, quadPositions);
-	private static VaoObject screenQuad = VaoLoader.loadModel(3, screenPositions);
+	// Queues to hold resources that are queued for loading/unloading
+	private static List<Resource> loadQueue;
+	private static List<Resource> unloadQueue;
 
-	public static Map<String, Resource> resourceNameMap = new HashMap<>();
-
+	/**
+	 * Initialize the resource manager
+	 */
 	public static void init()
 	{
-		loadInitResources();
+		resourceNameMap = new HashMap<>();
+		loadQueue = new ArrayList<>();
+		unloadQueue = new ArrayList<>();
 	}
 
-	public static void loadInitResources()
+	/**
+	 * Load a single resource.
+	 * This method will block until the resource is completely loaded.
+	 * Once the resource is loaded it is added to the {@link #resourceNameMap}
+	 * and can be accessed by calling the generic {@link #getResource(String)}
+	 * method using the resource name as a parameter.
+	 */
+	private static Resource loadResource(Resource r)
+	{
+		// Check if the same as another resource
+		for (Resource resource : resourceNameMap.values())
+			if (resource.equals(r) && resource.isLoaded())
+				return resource;
+
+		// If new resource
+		if (!r.isLoaded())
+		{
+			r.load();
+			r.setId();
+			r.setLoaded(true);
+			resourceNameMap.put(r.getName(), r);
+		}
+
+		return r;
+	}
+
+	/**
+	 * Unload a single resource.
+	 * This method will block until the resource is completely unloaded.
+	 * Once the resource is unloaded it is removed from the {@link #resourceNameMap}
+	 */
+	private static Resource unloadResource(Resource r)
+	{
+		if (r.isLoaded())
+		{
+			r.cleanUp();
+			r.setLoaded(false);
+			resourceNameMap.remove(r.getName());
+		}
+
+		return r;
+	}
+
+	/**
+	 * Load a package of resources.
+	 * This method will add a resource package's resources to the
+	 * managers {@link #loadQueue} and can be loaded on a background thread
+	 * using the {@link #runBackgroundManagement()} method. You can find
+	 * this packages load status using the packages isLoaded variable.
+	 *
+	 * @param resourcePackage the package to be loaded
+	 * @param block           whether or not this method should block until the package is done loading
+	 */
+	public static void loadResourcePackage(ResourcePackage resourcePackage, boolean block)
+	{
+		loadQueue.addAll(resourcePackage.getResources());
+
+		while (!resourcePackage.isLoaded() && block)
+		{
+			try
+			{
+				Thread.currentThread().sleep(10);
+			} catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * Unload a package of resources.
+	 * This method will add a resource package's resources to the
+	 * managers {@link #unloadQueue} and can be unloaded on a background thread
+	 * using the {@link #runBackgroundManagement()} method. You can find
+	 * this packages load status using the packages isLoaded variable.
+	 *
+	 * @param resourcePackage the package to be unloaded
+	 * @param block           whether or not this method should block until the package is done unloading
+	 */
+	public static void unloadResourcePackage(ResourcePackage resourcePackage, boolean block)
+	{
+		unloadQueue.addAll(resourcePackage.getResources());
+
+		while (resourcePackage.isLoaded() && block)
+		{
+			try
+			{
+				Thread.currentThread().sleep(10);
+			} catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * This method runs the background management of resource.
+	 * It is meant to be called on a separate thread, so as to not block the current one.
+	 * Mainly this method is used to load and unload resources from the queues in the background.
+	 */
+	public static void runBackgroundManagement()
+	{
+		int toLoad = Math.min(loadQueue.size(), MAX_LOADS_PER_CYCLE);
+		int toUnload = Math.min(unloadQueue.size(), MAX_LOADS_PER_CYCLE);
+
+		for (int i = 0; i < toLoad; i++)
+		{
+			Resource resource = loadQueue.remove(0);
+			loadResource(resource);
+		}
+
+		for (int i = 0; i < toUnload; i++)
+		{
+			Resource resource = unloadQueue.remove(0);
+			unloadResource(resource);
+		}
+	}
+
+	/**
+	 * Get a generic resource by name. This method will generically cast to
+	 * the specified type parameter. It searches the {@link #resourceNameMap} and
+	 * returns the resource stored at the given name, or {@code null} if their is no
+	 * such resource.
+	 *
+	 * @param res the name of the resource to find in the map
+	 * @return the resource with that name, or {@code null} if it doesn't exist
+	 */
+	public static <E extends Resource> E getResource(String res)
+	{
+		Resource resource = findResource(res);
+		E eResource = null;
+
+		if (resource != null)
+		{
+			try
+			{
+				eResource = (E) resource;
+			} catch (ClassCastException e)
+			{
+				return null;
+			}
+		}
+
+		return eResource;
+	}
+
+	/**
+	 * Find a resource in the {@link #resourceNameMap}, when given its name.
+	 *
+	 * @param res the resources name
+	 * @return the resource stored at that name, or {@code null} if it does not exist
+	 */
+	private static Resource findResource(String res)
+	{
+		if (resourceNameMap.containsKey(res))
+			return resourceNameMap.get(res);
+
+		System.err.println("No resource of the name: " + res);
+		return null;
+	}
+
+	/**
+	 * Clean up and unload the resources still stored in the {@link #resourceNameMap}.
+	 */
+	public static void cleanUp()
+	{
+		for (Resource r : resourceNameMap.values())
+			r.cleanUp();
+	}
+
+
+	public static void loadTestResources()
 	{
 		//Load defaults before everything
 		loadResource(new StaticModelResource("defualtModel", "defualt_model"));
@@ -56,123 +239,17 @@ public class ResourceManager
 		loadResource(new FontResource("Arial", "arial"));
 		loadResource(new FontResource("Segoe", "Segoe"));
 		loadResource(new FontResource("VinerHand", "VinerHand"));
+
+		// Load audio
+		loadResource(new SoundResource("knock", "door_converted"));
 	}
 
-	public static Resource loadResource(Resource r)
-	{
-		// Check if loaded
-		for (Resource resource : resourceNameMap.values())
-			if (resource.equals(r))
-				return resource;
+	/*TODO remove these*/
+	private static float[] quadPositions = new float[]{-.5f, .5f, 0, -.5f, -.5f, 0, .5f, .5f, 0, .5f, -.5f, 0};
+	private static float[] screenPositions = new float[]{-1f, 1f, 0, -1f, -1f, 0, 1f, 1f, 0, 1f, -1f, 0};
 
-		// If new resource
-		r.load();
-		r.setId();
-		resourceNameMap.put(r.getName(), r);
-
-		return r;
-	}
-
-	public static int dynamicLoadResource()
-	{
-		return 0;
-	}
-
-	public static int unloadResources()
-	{
-		return 0;
-	}
-
-	public static AnimatedModelResource getAnimatedModel(String modelName)
-	{
-		Resource model = findResource(modelName);
-		if (model instanceof AnimatedModelResource)
-			return (AnimatedModelResource) model;
-
-		System.err.println("Type error :" + modelName);
-
-		return null;
-	}
-
-	public static StaticModelResource getStaticModel(String modelName)
-	{
-		Resource model = findResource(modelName);
-		if (model instanceof StaticModelResource)
-			return (StaticModelResource) model;
-
-		System.err.println("Type error :" + modelName);
-
-		return null;
-	}
-
-	public static FontResource getFont(String fontName)
-	{
-		Resource font = findResource(fontName);
-		if (font instanceof FontResource)
-			return (FontResource) font;
-
-		System.err.println("Type error :" + fontName);
-
-		return null;
-	}
-
-	public static TextureResource getTextureResource(String texName)
-	{
-		Resource font = findResource(texName);
-		if (font instanceof TextureResource)
-			return (TextureResource) font;
-
-		System.err.println("Type error :" + texName);
-
-		return null;
-	}
-
-	public static CubeTextureResource getCubeTexture(String texName)
-	{
-		Resource cubeTexture = findResource(texName);
-		if (cubeTexture instanceof CubeTextureResource)
-			return (CubeTextureResource) cubeTexture;
-
-		System.err.println("Type error :" + texName);
-
-		return null;
-
-	}
-
-	public static <E extends Resource> E getResource(String res)
-	{
-		Resource resource = findResource(res);
-		E eResource = null;
-
-		if (resource != null)
-		{
-			try
-			{
-				eResource = (E) resource;
-			} catch (ClassCastException e)
-			{
-				System.err.println("The resource you requested is not of the correct type");
-				e.printStackTrace();
-			}
-		}
-
-		return eResource;
-	}
-
-	public static Resource findResource(String res)
-	{
-		if (resourceNameMap.containsKey(res))
-			return resourceNameMap.get(res);
-
-		System.err.println("No resource of the name: " + res);
-		return null;
-	}
-
-	public static void cleanUp()
-	{
-		for (Resource r : resourceNameMap.values())
-			r.cleanUp();
-	}
+	private static VaoObject GuiQuad = VaoLoader.loadModel(3, quadPositions);
+	private static VaoObject screenQuad = VaoLoader.loadModel(3, screenPositions);
 
 	public static VaoObject getGuiQuad()
 	{
@@ -183,5 +260,4 @@ public class ResourceManager
 	{
 		return screenQuad;
 	}
-
 }

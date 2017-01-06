@@ -8,14 +8,13 @@ public abstract class Resource
 	protected String location;
 	protected String name;
 	protected int id;
-
-	protected int priority;
-	protected int lastUsed;
+	protected boolean isLoaded;
 
 	public Resource(String name, String location)
 	{
 		this.name = name;
 		this.location = location;
+		this.isLoaded = false;
 	}
 
 	public abstract void load();
@@ -32,6 +31,16 @@ public abstract class Resource
 	public String getName()
 	{
 		return name;
+	}
+
+	public boolean isLoaded()
+	{
+		return isLoaded;
+	}
+
+	public void setLoaded(boolean isLoaded)
+	{
+		this.isLoaded = isLoaded;
 	}
 
 	@Override
