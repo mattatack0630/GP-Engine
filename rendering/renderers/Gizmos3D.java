@@ -1,10 +1,11 @@
 package rendering.renderers;
 
+import engine.Engine;
 import models.StaticModel;
 import rendering.Color;
 import rendering.RenderData;
 import rendering.StaticRenderObject;
-import resources.ResourceManager;
+import resources.StaticModelResource;
 import utils.math.linear.matrix.Matrix4f;
 import utils.math.linear.rotation.AxisAngle;
 import utils.math.linear.rotation.Euler;
@@ -16,16 +17,18 @@ import utils.math.linear.vector.Vector3f;
 public class Gizmos3D
 {
 	private static final Vector3f modelNormal = new Vector3f(0.00001f, 1, 0.00001f);
-	private static final StaticModel BOX = ResourceManager.getStaticModel("defualtModel").getModel();
-	private static final StaticModel SPHERE = ResourceManager.getStaticModel("isoSphereModel").getModel();
 
 	private static MasterRenderer renderer;
 	public static Color COLOR;
+	private static StaticModel SPHERE;
+	private static StaticModel BOX;
 
 	public static void init(MasterRenderer _renderer)
 	{
 		renderer = _renderer;
 		COLOR = Color.WHITE;
+		BOX = ((StaticModelResource) Engine.getResourceManager().getResource("defualtModel")).getModel();
+		SPHERE = ((StaticModelResource) Engine.getResourceManager().getResource("isoSphereModel")).getModel();
 	}
 
 	public static void drawBox(Vector3f center, Vector3f size)
@@ -35,6 +38,7 @@ public class Gizmos3D
 		rd.updateMatrix();
 
 		rd.tempColor = new Color(COLOR);
+		rd.frustumCheck = false;
 		renderer.processStaticModel(new StaticRenderObject(BOX, rd));
 	}
 
@@ -86,7 +90,7 @@ public class Gizmos3D
 		RenderData rd = new RenderData(pos);
 		rd.setScale(new Vector3f(radius, radius, radius));
 		rd.tempColor = COLOR;
-		rd.frustumCheck = false;
+		//rd.frustumCheck = false;
 		rd.updateMatrix();
 
 		renderer.processStaticModel(new StaticRenderObject(SPHERE, rd));
@@ -106,11 +110,13 @@ public class Gizmos3D
 		axis.normalize();
 		float angle = Vector3f.angle(origin, sub);
 
-		translate.translate(Vector3f.add(sub.scale(.5f), p1, null));
-		translate.rotate(angle, axis);
-		translate.scale(new Vector3f(width, sub.length() * 2, width));
+		RenderData rd = new RenderData(Vector3f.add(sub.scale(.5f), p1, null));
+		rd.setScale(new Vector3f(1, sub.length() * 2, 1));
+		rd.setRotation(new AxisAngle(axis, angle));
+		rd.tempColor = COLOR;
+		rd.frustumCheck = false;
+		rd.updateMatrix();
 
-		RenderData rd = new RenderData(translate);
 		rd.tempColor = new Color(COLOR);
 		renderer.processStaticModel(new StaticRenderObject(BOX, rd));
 	}

@@ -32,6 +32,8 @@ public class MSFboObject extends FboObject
 	@Override
 	public int createRenderBuffer()
 	{
+		bindFrameBuffer();
+
 		int renderBuffer = GL30.glGenRenderbuffers();
 
 		GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, renderBuffer);
@@ -50,6 +52,8 @@ public class MSFboObject extends FboObject
 	@Override
 	protected int createDepthBuffer()
 	{
+		bindFrameBuffer();
+
 		int depthBuffer = GL30.glGenRenderbuffers();
 
 		GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, depthBuffer);

@@ -14,25 +14,17 @@ import java.util.Map;
  */
 public class StaticRenderSystem extends EntitySystem
 {
-	Map<Entity, StaticModelComponent> components;
+	private Map<Entity, StaticModelComponent> components;
 
 	public StaticRenderSystem()
 	{
-		this.components = new HashMap<>();
+		components = new HashMap<>();
 	}
 
 	@Override
-	public void addEntity(Entity e)
+	public void setupNeededComponents()
 	{
-		StaticModelComponent component = e.getComponent(StaticModelComponent.class);
-		if (component != null)
-			components.put(e, component);
-	}
-
-	@Override
-	public void removeEntity(Entity e)
-	{
-		components.remove(e);
+		super.addNeededComponent(StaticModelComponent.class, components);
 	}
 
 	@Override

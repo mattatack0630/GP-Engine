@@ -2,7 +2,7 @@ package models;
 
 import resources.TextureResource;
 import utils.VaoObject;
-import utils.math.geom.AABB;
+import utils.math.geom.AABBmm;
 
 /**
  * The Textured Model Class
@@ -18,9 +18,9 @@ public class StaticModel
 	private TextureResource infoMap;
 	private TextureResource texture;
 	private RenderMaterial material;
-	private AABB boundingBox;
+	private AABBmm boundingBox;
 
-	public StaticModel(VaoObject model, RenderMaterial material, AABB bounds, TextureResource texture,
+	public StaticModel(VaoObject model, RenderMaterial material, AABBmm bounds, TextureResource texture,
 					   TextureResource normalMap, TextureResource infoMap)
 	{
 		this.vaoObject = model;
@@ -56,7 +56,7 @@ public class StaticModel
 		return normalMap;
 	}
 
-	public AABB getBoundingBox()
+	public AABBmm getBoundingBox()
 	{
 		return boundingBox;
 	}

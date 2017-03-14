@@ -7,9 +7,9 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import rendering.RenderData;
-import resources.ResourceManager;
 import shaders.FontShader;
 import shaders.GuiShader;
+import utils.VaoLoader;
 import utils.VaoObject;
 import utils.math.linear.MatrixGenerator;
 import utils.math.linear.matrix.Matrix4f;
@@ -20,15 +20,16 @@ import java.util.List;
 
 public class GuiRenderer
 {
+	private static final float[] POSITIONS = new float[]{-.5f, .5f, 0, -.5f, -.5f, 0, .5f, .5f, 0, .5f, -.5f, 0};
+	private static final VaoObject QUAD = VaoLoader.loadModel(3, POSITIONS);
+
 	public GuiShader GuiTexureShader = new GuiShader();
 	public FontShader fontShader = new FontShader();
-	private final VaoObject quad;
 
 	public GuiRenderer()
 	{
 		GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glCullFace(GL11.GL_BACK);
-		quad = ResourceManager.getGuiQuad();
 	}
 
 	public void prepare()
@@ -44,7 +45,7 @@ public class GuiRenderer
 
 		Matrix4f transformationMatrix = MatrixGenerator.genTransformMatrix(
 				new Vector3f(transform.getPosition().x(), transform.getPosition().y(), 0), transform.getRotation(),
-				new Vector3f(texture.getAttribs().getFontSize(), texture.getAttribs().getFontSize(), 1));
+				new Vector3f(texture.getAttribs().getFontSize(), texture.getAttribs().getFontSize(), 1), null);
 
 		fontShader.loadOverallAlpha(texture.getOpacity());
 		fontShader.loadTransformationMatrix(transformationMatrix);
@@ -90,8 +91,8 @@ public class GuiRenderer
 
 		Matrix4f transformationMatrix = MatrixGenerator.genTransformMatrix(
 				new Vector3f(texture.getPosition().x(), texture.getPosition().y(), 0),
-				new Euler(),
-				new Vector3f(texture.getSize().x(), texture.getSize().y(), 1));
+				new Euler(0, 0, texture.getRotation()),
+				new Vector3f(texture.getSize().x(), texture.getSize().y(), 1), null);
 
 		GuiTexureShader.loadColor(texture.getColor());
 		GuiTexureShader.loadHasTexture(hasTexture);
@@ -102,7 +103,7 @@ public class GuiRenderer
 	public void renderTextures(List<GuiTexture> textures)
 	{
 		GuiTexureShader.start();
-		GL30.glBindVertexArray(quad.vaoId);
+		GL30.glBindVertexArray(QUAD.vaoId);
 		GL20.glEnableVertexAttribArray(0);
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -111,7 +112,7 @@ public class GuiRenderer
 		for (GuiTexture texture : textures)
 		{
 			prepareGuiTexture(texture);
-			GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, quad.vertexCount);
+			GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, QUAD.vertexCount);
 		}
 
 		GL11.glEnable(GL11.GL_DEPTH_TEST);

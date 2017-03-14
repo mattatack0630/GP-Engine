@@ -1,5 +1,6 @@
 package utils.math.linear.rotation;
 
+import utils.math.linear.matrix.Matrix4f;
 import utils.math.linear.vector.Vector3f;
 import utils.math.linear.vector.Vector4f;
 
@@ -22,6 +23,35 @@ public class Quaternion extends Vector4f implements Rotation
 	public Quaternion(Vector4f src)
 	{
 		this(src.x(), src.y(), src.z(), src.w());
+	}
+
+	public Matrix4f toRotationMatrix()
+	{
+		float xx = x() * x();
+		float xy = x() * y();
+		float xz = x() * z();
+		float xw = x() * w();
+
+		float yy = y() * y();
+		float yz = y() * z();
+		float yw = y() * w();
+
+		float zz = z() * z();
+		float zw = z() * w();
+
+		Matrix4f m = new Matrix4f();
+		m.setElement(0, 0, 1 - 2 * (yy + zz));
+		m.setElement(0, 1, 2 * (xy - zw));
+		m.setElement(0, 2, 2 * (xz + yw));
+		m.setElement(1, 0, 2 * (xy + zw));
+		m.setElement(1, 1, 1 - 2 * (xx + zz));
+		m.setElement(1, 2, 2 * (yz - xw));
+		m.setElement(2, 0, 2 * (xz - yw));
+		m.setElement(2, 1, 2 * (yz + xw));
+		m.setElement(2, 2, 1 - 2 * (xx + yy));
+		m.setElement(3, 3, 1);
+
+		return m;
 	}
 
 	@Override

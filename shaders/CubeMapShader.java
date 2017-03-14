@@ -1,7 +1,6 @@
 package shaders;
 
 import rendering.camera.Camera;
-import utils.math.linear.MatrixGenerator;
 import utils.math.linear.matrix.Matrix4f;
 
 /**
@@ -22,7 +21,7 @@ public class CubeMapShader extends ShaderProgram
 
 	public void loadViewMatrix(Camera camera)
 	{
-		Matrix4f vm = MatrixGenerator.genViewMatrix(camera);
+		Matrix4f vm = new Matrix4f(camera.getViewMatrix());
 		vm.setCol(3, new float[]{0, 0, 0, 1});
 		super.loadMatrix("view", vm);
 	}

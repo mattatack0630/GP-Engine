@@ -22,7 +22,7 @@ public class CubeTextureResource extends Resource
 	}
 
 	@Override
-	public void load()
+	public void load(ResourceManager resManager)
 	{
 		int id = GL11.glGenTextures();
 		int size = 0;

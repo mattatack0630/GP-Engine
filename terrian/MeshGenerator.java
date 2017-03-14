@@ -1,6 +1,5 @@
 package terrian;
 
-import models.Vertex;
 import utils.VaoObject;
 import utils.math.Maths;
 import utils.math.PseudoNoise;

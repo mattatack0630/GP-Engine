@@ -6,7 +6,6 @@ import gui.Component.SliderComponent;
 import gui.GuiScene;
 import gui.Transition.MoveTransition;
 import gui.Transition.OpacityTransition;
-import input.InputManager;
 import org.lwjgl.input.Keyboard;
 import utils.ToggleBoolean;
 import utils.math.linear.vector.Vector2f;
@@ -84,7 +83,7 @@ public class DebugGui extends GuiScene
 		applyTransition(mt);
 		applyTransition(op);
 
-		if (InputManager.isKeyClicked(HIDE_KEY))
+		if (Engine.getInputManager().isKeyClicked(HIDE_KEY))
 			toggleClose.toggle();
 
 		if (toggleClose.turnedFalse())

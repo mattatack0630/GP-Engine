@@ -1,9 +1,9 @@
 package gui.Component;
 
+import engine.Engine;
 import gui.Component.Content.SliderContent;
 import gui.GuiTexture;
 import rendering.Color;
-import resources.ResourceManager;
 import resources.TextureResource;
 import utils.math.linear.vector.Vector2f;
 
@@ -56,11 +56,11 @@ public class SliderComponent extends Component
 				setSliderTexture(new Color(value), sliderContent.sliderButton.getColor());
 				break;
 			case "buttonimage":
-				int bi = ResourceManager.loadResource(new TextureResource(value, value)).getId();
+				int bi = Engine.getResourceManager().loadResource(new TextureResource(value, value)).getId();
 				sliderContent.sliderButton = new GuiTexture(bi, new Vector2f(0, 0), content.size);
 				break;
 			case "railimage":
-				int ri = ResourceManager.loadResource(new TextureResource(value, value)).getId();
+				int ri = Engine.getResourceManager().loadResource(new TextureResource(value, value)).getId();
 				sliderContent.sliderRail = new GuiTexture(ri, new Vector2f(0, 0), content.size);
 				break;
 		}

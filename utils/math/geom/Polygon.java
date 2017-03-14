@@ -66,9 +66,9 @@ public class Polygon extends GeometryObject
 	/**
 	 * Calculate and return a bounding box for this Polygon
 	 */
-	public AABB getBounds()
+	public AABBmm getBounds()
 	{
-		AABB bounds = new AABB(AABB.BOUNDS_MIN, AABB.BOUNDS_MAX);
+		AABBmm bounds = new AABBmm(AABBmm.BOUNDS_MIN, AABBmm.BOUNDS_MAX);
 
 		List<Vector3f> verts = new ArrayList<>();
 		for (Vector3f vert : verts)
@@ -92,7 +92,7 @@ public class Polygon extends GeometryObject
 	}
 
 	/**
-	 * Reconstruct and set this Polygon's face planes
+	 * Reconstruct and setElements this Polygon's face planes
 	 */
 	public void reconstructPlanes()
 	{

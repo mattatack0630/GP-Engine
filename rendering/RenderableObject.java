@@ -5,7 +5,7 @@ import utils.math.geom.AABB;
 /**
  * Created by mjmcc on 12/13/2016.
  */
-public class RenderableObject implements Comparable
+public abstract class RenderableObject implements Comparable
 {
 	protected float distToCamera;
 	protected AABB bounds;
@@ -26,10 +26,7 @@ public class RenderableObject implements Comparable
 		this.distToCamera = d;
 	}
 
-	public void updateBounds()
-	{
-
-	}
+	public abstract void updateBounds();
 
 	public AABB getUpdatedBoundingBox()
 	{

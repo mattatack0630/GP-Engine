@@ -18,33 +18,23 @@ public class AudioManager
 {
 	private static final float SOURCE_TIME_OUT = 5.0f;
 
-	private static Map<Source, Sound> playingSources;
+	private AudioStreamer audioStreamer;
+	private Map<Source, Sound> playingSources;
 
 	/**
 	 * Init audio Manager
 	 * Called by the Engine class
 	 */
-	public static void init()
+	public AudioManager()
 	{
-		playingSources = new HashMap<>();
-
-		// openAL prep
-		createOpenAL();
-		AL10.alDistanceModel(AL10.AL_INVERSE_DISTANCE_CLAMPED);
+		this.audioStreamer = new AudioStreamer(this);
+		this.playingSources = new HashMap<>();
 	}
 
-	/**
-	 * Generates the openAL instance used for playing in game audio.
-	 */
-	private static void createOpenAL()
+	public void update()
 	{
-		try
-		{
-			AL.create();
-		} catch (LWJGLException e)
-		{
-			e.printStackTrace();
-		}
+		cleanUnusedResources();
+		audioStreamer.updateStreams();
 	}
 
 	/**
@@ -53,7 +43,7 @@ public class AudioManager
 	 * and handles cleaning up the source if it is not in used.
 	 * Called in the Engine update method.
 	 */
-	public static void cleanUnusedResources()
+	public void cleanUnusedResources()
 	{
 		for (Source source : playingSources.keySet())
 		{
@@ -78,7 +68,7 @@ public class AudioManager
 	 * @param sound  the sound to be played directly
 	 * @param source the source to emmit this sound from
 	 */
-	public static void play(DirectSound sound, Source source)
+	public void play(DirectSound sound, Source source)
 	{
 		playingSources.put(source, sound);
 		source.retrieveSourceId();
@@ -101,13 +91,13 @@ public class AudioManager
 	 * @param sound  the sound to be streamed
 	 * @param source the source to emmit this stream from
 	 */
-	public static void play(StreamSound sound, Source source)
+	public void play(StreamSound sound, Source source)
 	{
 		playingSources.put(source, sound);
 		source.retrieveSourceId();
 		sound.renewSound();
 
-		AudioStreamer.addStream(sound, source);
+		audioStreamer.addStream(sound, source);
 		AL10.alSourcePlay(source.getSourceId());
 	}
 
@@ -117,7 +107,7 @@ public class AudioManager
 	 * @param sound  the sound to be stopped
 	 * @param source the source to be stopped
 	 */
-	public static void stop(DirectSound sound, Source source)
+	public void stop(DirectSound sound, Source source)
 	{
 		AL10.alSourceStop(source.getSourceId());
 
@@ -136,12 +126,12 @@ public class AudioManager
 	 * @param sound  the sound stream to be stopped and cleaned
 	 * @param source the source to be stopped
 	 */
-	public static void stop(StreamSound sound, Source source)
+	public void stop(StreamSound sound, Source source)
 	{
 		AL10.alSourceStop(source.getSourceId());
 		AL10.alSourceUnqueueBuffers(source.getSourceId());
 
-		AudioStreamer.removeStream(sound);
+		audioStreamer.removeStream(sound);
 		playingSources.remove(source);
 
 		source.releaseSourceId();
@@ -151,16 +141,16 @@ public class AudioManager
 	/**
 	 * Pause a stream.
 	 */
-	public static void pause(StreamSound sound, Source source)
+	public void pause(StreamSound sound, Source source)
 	{
 		AL10.alSourcePause(source.getSourceId());
-		AudioStreamer.removeStream(sound);
+		audioStreamer.removeStream(sound);
 	}
 
 	/**
 	 * Pause a DirectSound.
 	 */
-	public static void pause(DirectSound sound, Source source)
+	public void pause(DirectSound sound, Source source)
 	{
 		AL10.alSourcePause(source.getSourceId());
 	}
@@ -168,27 +158,27 @@ public class AudioManager
 	/**
 	 * Resume a Stream back to where it was paused.
 	 * */
-	public static void resume(StreamSound sound, Source source)
+	public void resume(StreamSound sound, Source source)
 	{
 		AL10.alSourcePlay(source.getSourceId());
-		AudioStreamer.addStream(sound, source);
+		audioStreamer.addStream(sound, source);
 	}
 
 	/**
 	 * Resume a DirectSound back to where it was paused.
 	 */
-	public static void resume(DirectSound sound, Source source)
+	public void resume(DirectSound sound, Source source)
 	{
 		AL10.alSourcePlay(source.getSourceId());
 	}
 
 	/**
 	 * Set openAL's listener params.
-	 * This method uses a listener object to set openAL's listener parameters.
+	 * This method uses a listener object to setElements openAL's listener parameters.
 	 *
 	 * @param listener the Listener object, whose data should be copied to openAL
 	 */
-	public static void setListener(Listener listener)
+	public void setListener(Listener listener)
 	{
 		Vector3f position = listener.getPosition();
 		Vector3f velocity = listener.getVelocity();
@@ -200,8 +190,30 @@ public class AudioManager
 	/**
 	 * Clean up all buffers and sources, also destroys openAL instance.
 	 */
-	public static void cleanUp()
+	public void cleanUp()
+	{
+
+	}
+
+	/**
+	 * Generates the openAL instance used for playing in game audio.
+	 */
+	public static void createOpenAL()
+	{
+		try
+		{
+			AL.create();
+		} catch (LWJGLException e)
+		{
+			e.printStackTrace();
+		}
+
+		AL10.alDistanceModel(AL10.AL_INVERSE_DISTANCE_CLAMPED);
+	}
+
+	public static void destroyAL()
 	{
 		AL.destroy();
 	}
+
 }

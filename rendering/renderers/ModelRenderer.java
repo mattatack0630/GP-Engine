@@ -9,6 +9,7 @@ import rendering.Light;
 import rendering.RenderData;
 import rendering.StaticRenderObject;
 import rendering.camera.Camera;
+import rendering.fbo.FboObject;
 import rendering.post.CubeMap;
 import resources.TextureResource;
 import shaders.AnimatedShader;
@@ -38,12 +39,12 @@ public class ModelRenderer
 	}
 
 	/*Static Model Stuff*/
-
-	public void renderStaticModels(List<StaticRenderObject> renderObjects, List<Light> lights, CubeMap environmentMap, Camera camera)
+	public void renderStaticModels(List<StaticRenderObject> renderObjects, List<Light> lights, CubeMap environmentMap,
+								   Camera camera, FboObject shadowMap, Matrix4f shadowMapConversion)
 	{
 		staticShader.start();
 
-		prepareStaticRender(lights, environmentMap, camera);
+		prepareStaticRender(lights, environmentMap, camera, shadowMap, shadowMapConversion, true);
 
 		StaticModel lastModel = null;
 		for (StaticRenderObject renderObject : renderObjects)
@@ -53,7 +54,10 @@ public class ModelRenderer
 			if (model != lastModel) prepareStaticModel(model);
 
 			prepareStaticInstance(renderObject.getRenderData());
+
 			GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVaoObject().vertexCount, GL11.GL_UNSIGNED_INT, 0);
+			MasterRenderer.verticesRendered += model.getVaoObject().vertexCount;
+			MasterRenderer.modelsRendered++;
 
 			lastModel = model;
 		}
@@ -61,14 +65,51 @@ public class ModelRenderer
 		staticShader.stop();
 	}
 
-	private void prepareStaticRender(List<Light> lights, CubeMap environmentMap, Camera camera)
+	public void renderStaticModelsDirty(List<StaticRenderObject> renderObjects, Camera camera)
 	{
-		staticShader.loadLights(lights);
+		staticShader.start();
+
+		prepareStaticRender(null, null, camera, null, null, false);
+
+		StaticModel lastModel = null;
+		for (StaticRenderObject renderObject : renderObjects)
+		{
+			StaticModel model = renderObject.getStaticModel();
+
+			if (model != lastModel) prepareStaticModel(model);
+
+			prepareStaticInstance(renderObject.getRenderData());
+
+			GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVaoObject().vertexCount, GL11.GL_UNSIGNED_INT, 0);
+			MasterRenderer.verticesRendered += model.getVaoObject().vertexCount;
+			MasterRenderer.modelsRendered++;
+
+			lastModel = model;
+		}
+
+		staticShader.stop();
+	}
+
+	private void prepareStaticRender(List<Light> lights, CubeMap environmentMap, Camera camera,
+									 FboObject shadowMap, Matrix4f shadowMapConversion, boolean quality)
+	{
+		staticShader.loadLightingOn(quality);
+		staticShader.loadInfoMapOn(quality);
+		staticShader.loadNormalMapOn(quality);
+		staticShader.loadEnvironmentMapOn(quality);
+		staticShader.loadShadowOn(quality && MasterRenderer.RENDER_SHADOWS);
+
 		staticShader.loadViewMatrix(camera);
-		staticShader.loadTextureCube("", environmentMap.getId(), 1);
 		staticShader.loadProjectionMatrix(camera.getProjection());
-		staticShader.loadRangeLog(camera.getLogRange());
-		staticShader.loadFlatShading(true);
+
+		if (quality)
+		{
+			staticShader.loadLights(lights);
+			staticShader.loadTextureCube("", environmentMap.getId(), 1);
+			staticShader.loadRangeLog(camera.getLogRange());
+			staticShader.loadShadowMap(shadowMap, shadowMapConversion, 4);
+		}
+
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 	}
 
@@ -95,22 +136,25 @@ public class ModelRenderer
 
 
 	/*Animated Stuff!*/
-
-	public void renderAnimatedModels(List<AnimatedRenderObject> renderObjects, List<Light> lights, CubeMap environmentMap, Camera camera)
+	public void renderAnimatedModels(List<AnimatedRenderObject> renderObjects, List<Light> lights, CubeMap environmentMap,
+									 Camera camera, FboObject shadowMap, Matrix4f shadowMapConversion)
 	{
 		animationShader.start();
 
-		prepareAnimationRender(lights, environmentMap, camera);
+		prepareAnimationRender(lights, environmentMap, camera, shadowMap, shadowMapConversion, true);
 
 		AnimatedModel lastModel = null;
 		for (AnimatedRenderObject renderObject : renderObjects)
 		{
-			AnimatedModel model = renderObject.getStaticModel();
+			AnimatedModel model = renderObject.getAnimatedModel();
 			if (model != lastModel)
 				prepareAnimatedModel(model);
 
 			prepareAnimatedInstance(model, renderObject.getRenderData());
+
 			GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVaoObject().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+			MasterRenderer.verticesRendered += model.getVaoObject().vertexCount;
+			MasterRenderer.modelsRendered++;
 
 			lastModel = model;
 		}
@@ -118,14 +162,48 @@ public class ModelRenderer
 		animationShader.stop();
 	}
 
-	private void prepareAnimationRender(List<Light> lights, CubeMap environmentMap, Camera camera)
+	public void renderAnimatedModelsDirty(List<AnimatedRenderObject> renderObjects, List<Light> lights, CubeMap environmentMap,
+										  Camera camera, FboObject shadowMap, Matrix4f shadowMapConversion)
 	{
+		animationShader.start();
+
+		prepareAnimationRender(lights, environmentMap, camera, shadowMap, shadowMapConversion, false);
+
+		AnimatedModel lastModel = null;
+		for (AnimatedRenderObject renderObject : renderObjects)
+		{
+			AnimatedModel model = renderObject.getAnimatedModel();
+			if (model != lastModel)
+				prepareAnimatedModel(model);
+
+			prepareAnimatedInstance(model, renderObject.getRenderData());
+
+			GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVaoObject().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+			MasterRenderer.verticesRendered += model.getVaoObject().vertexCount;
+			MasterRenderer.modelsRendered++;
+
+			lastModel = model;
+		}
+
+		animationShader.stop();
+	}
+
+	private void prepareAnimationRender(List<Light> lights, CubeMap environmentMap, Camera camera,
+										FboObject shadowMap, Matrix4f shadowMapConversion, boolean quality)
+	{
+		animationShader.loadLightingOn(quality);
+		animationShader.loadInfoMapOn(quality);
+		animationShader.loadNormalMapOn(quality);
+		animationShader.loadEnvironmentMapOn(quality);
+		animationShader.loadShadowOn(quality && MasterRenderer.RENDER_SHADOWS);
+
 		animationShader.loadLights(lights);
 		animationShader.loadViewMatrix(camera);
 		animationShader.loadTextureCube("", environmentMap.getId(), 1);
 		animationShader.loadProjectionMatrix(camera.getProjection());
 		animationShader.loadRangeLog(camera.getLogRange());
-		animationShader.loadFlatShading(true);
+		animationShader.loadShadowMap(shadowMap, shadowMapConversion, 4);
+		animationShader.loadBoolean("shadowsOn", MasterRenderer.RENDER_SHADOWS);
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 	}
 
@@ -147,7 +225,6 @@ public class ModelRenderer
 
 	private void prepareAnimatedInstance(AnimatedModel model, AnimatedRenderData renderData)
 	{
-		renderData.updateMatrix();
 		ArrayList<Matrix4f> boneMats = model.getAnimationData().getBoneAnimationMats(renderData.animationOn, renderData.time);
 
 		animationShader.loadDebugColor(renderData.tempColor);

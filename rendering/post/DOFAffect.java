@@ -8,10 +8,12 @@ import rendering.fbo.FboObject;
 public class DOFAffect extends PostProcessingEffect
 {
 	private float blurValue;
+	private float distance;
 
-	public void setAffectVars(float bv)
+	public void setAffectVars(float bv, float dist)
 	{
 		blurValue = bv;
+		distance = dist;
 	}
 
 	@Override
@@ -28,6 +30,7 @@ public class DOFAffect extends PostProcessingEffect
 
 		outputFbo.bindFrameBuffer();
 		PostProcessor.DOFShader.start();
+		PostProcessor.DOFShader.loadFloat("dist", distance);
 		PostProcessor.DOFShader.loadTexture("screenTexture", currentScreen.getColorAttachment(0), 0);
 		PostProcessor.DOFShader.loadTexture("depthTexture", currentScreen.getDepthAttachment(), 1);
 		PostProcessor.DOFShader.loadTexture("blurTexture", blurScreen.getColorAttachment(0), 2);

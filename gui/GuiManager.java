@@ -11,8 +11,8 @@ import java.util.HashMap;
  * A content the smallest unit, it has a size, and functionality of sorts
  * A component is a element on the screen which can hold and display content
  * A panel is a group of components that are placed together in a layout (ei. a grid or vertical aligned panel)
- * A GuiScene is a set of panels that are grouped together, they move together (ei. a popup)
- * A GuiScreen is a set of GuiScene which are shown together, like a start screen, or a main screen, end screen
+ * A GuiScene is a setElements of panels that are grouped together, they move together (ei. a popup)
+ * A GuiScreen is a setElements of GuiScene which are shown together, like a start screen, or a main screen, end screen
  */
 public class GuiManager
 {

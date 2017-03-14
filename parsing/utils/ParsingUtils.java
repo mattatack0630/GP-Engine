@@ -6,6 +6,7 @@ import utils.math.linear.vector.Vector2f;
 import utils.math.linear.vector.Vector3f;
 import utils.math.linear.vector.Vector4f;
 
+import java.io.*;
 import java.util.List;
 
 /**
@@ -41,6 +42,16 @@ public class ParsingUtils
 
 		for (int i = 0; i < stringArray.length; i++)
 			farray[i] = Float.parseFloat(stringArray[i]);
+
+		return farray;
+	}
+
+	public static int[] toIntArray(String[] stringArray)
+	{
+		int[] farray = new int[stringArray.length];
+
+		for (int i = 0; i < stringArray.length; i++)
+			farray[i] = Integer.parseInt(stringArray[i].trim());
 
 		return farray;
 	}
@@ -173,5 +184,33 @@ public class ParsingUtils
 			arrays[i / stride][i % stride] = fullArray[i];
 
 		return arrays;
+	}
+
+	public static BufferedReader openReader(String filePath)
+	{
+		BufferedReader reader = null;
+
+		try
+		{
+			File file = new File(filePath);
+			FileReader fr = new FileReader(filePath);
+			reader = new BufferedReader(fr);
+		} catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+
+		return reader;
+	}
+
+	public static void closeReader(BufferedReader reader)
+	{
+		try
+		{
+			reader.close();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 }

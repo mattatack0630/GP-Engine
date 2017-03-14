@@ -37,7 +37,7 @@ public class StreamSound extends Sound
 
 	/**
 	 * Get amount buffers equal to the {@link #BUFFERS_AMOUNT} constant
-	 * if this sound does not already have buffers and set {@code hasBuffers} variable to true.
+	 * if this sound does not already have buffers and setElements {@code hasBuffers} variable to true.
 	 * */
 	public void retrieveBuffers()
 	{

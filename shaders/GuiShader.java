@@ -19,12 +19,15 @@ public class GuiShader extends ShaderProgram{
 		super.bindAttribute(0, "position");
 		super.bindAttribute(1, "textureCoords");
 	}
+
 	public void loadTransformationMatrix(Matrix4f matrix){
 		super.loadMatrix("transformation", matrix);
 	}
+
 	public void loadTexture() {
 		super.loadInteger("textureSampler", 0);
 	}
+
 	public void loadColor(Color color) {
 		float r = color.getR();
 		float g = color.getG();

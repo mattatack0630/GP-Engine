@@ -205,7 +205,7 @@ public class Source
 	 * given gain value no matter where the listener is relative
 	 * to the source.
 	 *
-	 * @param gain the gain or volume to set the source to
+	 * @param gain the gain or volume to setElements the source to
 	 * @return the newly generated source object
 	 */
 	public static Source generateMusicSource(float gain)

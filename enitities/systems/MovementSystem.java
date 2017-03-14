@@ -13,25 +13,11 @@ import java.util.Map;
  */
 public class MovementSystem extends EntitySystem
 {
-	Map<Entity, MovementComponent> components;
+	private Map<Entity, MovementComponent> components;
 
 	public MovementSystem()
 	{
 		this.components = new HashMap<>();
-	}
-
-	@Override
-	public void addEntity(Entity e)
-	{
-		MovementComponent component = e.getComponent(MovementComponent.class);
-		if (component != null)
-			components.put(e, component);
-	}
-
-	@Override
-	public void removeEntity(Entity e)
-	{
-		components.remove(e);
 	}
 
 	@Override
@@ -48,5 +34,11 @@ public class MovementSystem extends EntitySystem
 	@Override
 	public void render(MasterRenderer renderer)
 	{
+	}
+
+	@Override
+	public void setupNeededComponents()
+	{
+		super.addNeededComponent(MovementComponent.class, components);
 	}
 }

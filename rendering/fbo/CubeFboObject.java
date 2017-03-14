@@ -26,4 +26,9 @@ public class CubeFboObject extends FboObject
 	{
 		GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, CubeMap.FACES[face], cubeMap.getId(), 0);
 	}
+
+	public CubeMap getCubeMap()
+	{
+		return cubeMap;
+	}
 }

@@ -46,7 +46,7 @@ public class PhysicsManager
 			o1.update(); // Update pos
 		}
 
-		// Narrow down results using AABB technique
+		// Narrow down results using AABBmm technique
 
 		// For each environments physicsObjects, check for collisions with other objects
 		ArrayList<CollisionData> collisions = CollisionManager.getCollisions(environment.physicsObjects);

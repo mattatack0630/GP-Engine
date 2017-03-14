@@ -25,17 +25,17 @@ public class Sorter
 		return input;
 	}
 
-	public static <E> List<E> bubbleSort(List<E> list)
+	public static <E extends Comparable> List<E> bubbleSort(List<E> list)
 	{
 		return null;
 	}
 
-	public static <E> List<E> quickSort(List<E> list)
+	public static <E extends Comparable> List<E> quickSort(List<E> list)
 	{
 		return null;
 	}
 
-	public static <E> List<E> heapSort(List<E> list)
+	public static <E extends Comparable> List<E> heapSort(List<E> list)
 	{
 		return null;
 	}

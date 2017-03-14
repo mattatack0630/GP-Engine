@@ -76,7 +76,7 @@ public class UDPPacket
 	}
 
 	/**
-	 * Construct a packet from the full set of bytes
+	 * Construct a packet from the full setElements of bytes
 	 */
 	public void deconstruct()
 	{

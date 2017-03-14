@@ -7,7 +7,7 @@ import java.util.List;
  * Created by mjmcc on 1/6/2017.
  * <p>
  * The ResourcePackage is used to store
- * a set of resource together, so that they can be easily
+ * a setElements of resource together, so that they can be easily
  * loaded and unloaded by the ResourceManager.
  */
 public class ResourcePackage
@@ -60,6 +60,6 @@ public class ResourcePackage
 	public boolean isLoaded()
 	{
 		Resource resource = resources.isEmpty() ? null : resources.get(resources.size() - 1);
-		return resource != null && resource.isLoaded();
+		return resource == null || resource.isLoaded();
 	}
 }

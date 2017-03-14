@@ -27,14 +27,16 @@ public class VaoObject
 	public Vector3f maxPoint;
 	public Vector3f minPoint;
 
-	public int vertexCount;
 	public int vaoId;
-	public int attribCount;
+	public int vertexCount;
+	private int attribCount;
+
 	private Map<Integer, Integer> vboMap = new HashMap<>();
 
 	public VaoObject()
 	{
 		vaoId = GL30.glGenVertexArrays();
+
 		attribCount = 0;
 
 		this.maxPoint = new Vector3f(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
@@ -62,12 +64,13 @@ public class VaoObject
 	 * @param vboData     the data to store in this vbo
 	 * @param attribIndex the index in which to store this vbo, within the parent vao
 	 */
-	public void addVboAttrib(int attribIndex, float[] vboData, int dataSize)
+	public void addAttribute(int attribIndex, float[] vboData, int dataSize)
 	{
 		int vboID = GL15.glGenBuffers();
 		vboMap.put(attribIndex, vboID);
 		attribCount++;
 
+		//TODO fix this
 		FloatBuffer buffer = BufferUtils.createFloatBuffer(vboData.length);
 		buffer.put(vboData);
 		buffer.flip();
@@ -78,7 +81,7 @@ public class VaoObject
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
 	}
 
-	public void addVboInstanceAttrib(int attribIndex, float[] vboData, int dataSize)
+	public void addInstanceAttribute(int attribIndex, float[] vboData, int dataSize)
 	{
 		int vboID = GL15.glGenBuffers();
 		vboMap.put(attribIndex, vboID);
@@ -98,7 +101,7 @@ public class VaoObject
 	/**
 	 * Set the element index data, aka the data that tells opengl what order to make shapes from
 	 *
-	 * @param indexArray the index array to set the order to
+	 * @param indexArray the index array to setElements the order to
 	 */
 	public void setIndexArray(int[] indexArray)
 	{
@@ -182,5 +185,10 @@ public class VaoObject
 	public int getVertexCount()
 	{
 		return vertexCount;
+	}
+
+	public void setVertexCount(int vertexCount)
+	{
+		this.vertexCount = vertexCount;
 	}
 }

@@ -17,7 +17,7 @@ public abstract class Resource
 		this.isLoaded = false;
 	}
 
-	public abstract void load();
+	public abstract void load(ResourceManager resManager);
 
 	public abstract void setId();
 

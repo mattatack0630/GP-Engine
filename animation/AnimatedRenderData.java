@@ -23,7 +23,7 @@ public class AnimatedRenderData extends RenderData
 	 */
 	public AnimatedRenderData()
 	{
-		this(new Vector3f(), new Euler(), new Vector3f());
+		this(new Vector3f(), new Euler(), new Vector3f(1));
 	}
 
 	public AnimatedRenderData(Vector3f pos, Rotation rot, Vector3f s)

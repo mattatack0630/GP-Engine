@@ -1,63 +1,67 @@
 package shaders;
 
+import shaders.uniforms.FloatUniform;
+import shaders.uniforms.MatrixUniform;
+import shaders.uniforms.VectorUniform;
 import utils.math.linear.matrix.Matrix4f;
 import utils.math.linear.vector.Vector4f;
 
-public class ParticleShader extends ShaderProgram{
+public class ParticleShader extends ShaderProgram
+{
 	private static String vertexFile = "ParticleShaderV11.vp";
 	private static String fragmentFile = "ParticleShaderV11.fp";
-	
-	public ParticleShader() {
+
+	private MatrixUniform projectionUniform;
+	private MatrixUniform modelViewUniform;
+	private VectorUniform currStageUniform;
+	private VectorUniform postStageUniform;
+	private FloatUniform progressUniform;
+
+	public ParticleShader()
+	{
 		super(vertexFile, fragmentFile);
+
+		projectionUniform = new MatrixUniform(this, "projection", new Matrix4f());
+		modelViewUniform = new MatrixUniform(this, "ModelView", new Matrix4f());
+		currStageUniform = new VectorUniform(this, "stageCoords0", new Vector4f());
+		postStageUniform = new VectorUniform(this, "stageCoords1", new Vector4f());
+		progressUniform = new FloatUniform(this, "progression", 0);
 	}
 
 	@Override
-	protected void bindAttributes() {
+	protected void bindAttributes()
+	{
 		super.bindAttribute(0, "position");
 		super.bindAttribute(1, "textureCoords");
 	}
 
-	public void loadTransformationMatrix(Matrix4f matrix){
-		super.loadMatrix("transformation", matrix);
-	}
-	
-	public void loadProjectionMatrix(Matrix4f matrix){
-		super.loadMatrix("projection", matrix);
-	}
-	
-	public void loadModelViewMatrix(Matrix4f viewMatrix){
-		super.loadMatrix("ModelView", viewMatrix);	
-	}
-
-	public void loadWVP(Matrix4f WVPMatrix) {
-		super.loadMatrix("WVP", WVPMatrix);
-	}
-	
-	public void loadBlendFactor(float blend){
-		super.loadFloat("progression", blend);
-	}
-	
-	public void loadNumberOfRows(int rowNum){
-		super.loadInteger("numberOfRows", rowNum);
-	}	
-	
-	public void loadIndicies(int indexNow, int indexNext){
-		super.loadInteger("indexOn", indexNow);
-		super.loadInteger("nextIndexOn", indexNext);
-	}
-
-	public void loadViewMatrix(Matrix4f viewMatrix)
+	public void loadProjectionMatrix(Matrix4f matrix)
 	{
-		super.loadMatrix("view", viewMatrix);
+		projectionUniform.setValue(matrix);
+		projectionUniform.loadToShader();
+	}
+
+	public void loadModelViewMatrix(Matrix4f viewMatrix)
+	{
+		modelViewUniform.setValue(viewMatrix);
+		modelViewUniform.loadToShader();
+	}
+
+	public void loadBlendFactor(float blend)
+	{
+		progressUniform.setValue(blend);
+		progressUniform.loadToShader();
 	}
 
 	public void loadCurrStage(Vector4f currStage)
 	{
-		super.loadVector4("stageCoords0", currStage);
+		currStageUniform.setValue(currStage);
+		currStageUniform.loadToShader();
 	}
 
-	public void loadPostStage(Vector4f currStage)
+	public void loadPostStage(Vector4f postStage)
 	{
-		super.loadVector4("stageCoords1", currStage);
+		postStageUniform.setValue(postStage);
+		postStageUniform.loadToShader();
 	}
 }

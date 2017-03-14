@@ -64,6 +64,13 @@ public class Matrix
 		return row;
 	}
 
+
+	public void setElement(int x, int y, float v)
+	{
+		if (width >= x && height >= y)
+			elements[x][y] = v;
+	}
+
 	// up -> down
 	public void setCol(int c, float[] data)
 	{
@@ -120,6 +127,16 @@ public class Matrix
 	public float getEl(int x, int y)
 	{
 		return elements[x][y];
+	}
+
+	public int getHeight()
+	{
+		return height;
+	}
+
+	public int getWidth()
+	{
+		return width;
 	}
 
 	/**
@@ -340,10 +357,21 @@ public class Matrix
 		return m;
 	}
 
-	public static void store(Matrix4f matrix, FloatBuffer matrixBuffer)
+	public static void store(Matrix matrix, FloatBuffer matrixBuffer)
 	{
 		for (int i = 0; i < matrix.width; i++)
 			for (int j = 0; j < matrix.height; j++)
 				matrixBuffer.put(matrix.elements[i][j]);
 	}
+
+	public static int store(Matrix matrix, float[] matrixBuffer, int off)
+	{
+		for (int i = 0; i < matrix.width; i++)
+			for (int j = 0; j < matrix.height; j++)
+				matrixBuffer[off++] = matrix.elements[i][j];
+
+		return off;
+	}
+
+
 }

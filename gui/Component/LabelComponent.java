@@ -7,8 +7,6 @@ import rendering.Color;
 import utils.ExtraUtils;
 import utils.math.linear.vector.Vector2f;
 
-import java.util.ArrayList;
-
 /**
  * Created by mjmcc on 10/8/2016.
  */
@@ -35,14 +33,6 @@ public class LabelComponent extends Component
 	{
 		textContent.updateText(text, textContent.text.getAttribs());
 		updateContent();
-	}
-
-	public void applyAttribList(ArrayList<String> attribList)
-	{
-		super.applyAttribList(attribList);
-		textContent.text.update();
-		textContent.update();
-		calculateSize(textContent.size);
 	}
 
 	@Override

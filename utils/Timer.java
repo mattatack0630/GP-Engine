@@ -47,6 +47,7 @@ public class Timer
 	{
 		if (isRunning)
 			elapsed += (System.currentTimeMillis() - lastTime) / 1000.0f;
+
 		lastTime = System.currentTimeMillis();
 	}
 }

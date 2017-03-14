@@ -66,6 +66,11 @@ public class Entity
 		this.transform.setPosition(position);
 	}
 
+	public void setScale(Vector3f scale)
+	{
+		this.transform.setScale(scale);
+	}
+
 	public <E extends EntityComponent> E getComponent(Class classType)
 	{
 		for (EntityComponent component : components)
@@ -78,4 +83,6 @@ public class Entity
 
 		return null;
 	}
+
+
 }

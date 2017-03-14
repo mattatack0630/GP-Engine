@@ -1,5 +1,7 @@
 package utils.math.linear.rotation;
 
+import utils.math.Maths;
+import utils.math.linear.vector.Vector2f;
 import utils.math.linear.vector.Vector3f;
 
 /**
@@ -59,7 +61,6 @@ public class Euler implements Rotation
 		this.eulerRad = eulerRad;
 	}
 
-
 	@Override
 	public void fromAxisAngle(AxisAngle a)
 	{
@@ -116,7 +117,7 @@ public class Euler implements Rotation
 		double norm = x * x + y * y + z * z;
 		if (norm < 0.001)
 		{ // when all euler angles are zero angle =0 so
-			// we can set axis to anything to avoid divide by zero
+			// we can setElements axis to anything to avoid divide by zero
 			x = 1;
 			y = z = 0;
 		} else
@@ -140,7 +141,32 @@ public class Euler implements Rotation
 	public String toString()
 	{
 		String s = "Euler: ";
-		s += "[(x)" + eulerRad.elements[0] + ", (y)" + eulerRad.elements[1] + ", (z)" + eulerRad.elements[2] + "]";
+		s += "Rad[" +
+				Maths.round(eulerRad.x(), 2) + ", " +
+				Maths.round(eulerRad.y(), 2) + ", " +
+				Maths.round(eulerRad.z(), 2) + "]\t" + "Deg[" +
+				Maths.round((float) Math.toDegrees(eulerRad.x()), 2) + ", " +
+				Maths.round((float) Math.toDegrees(eulerRad.y()), 2) + ", " +
+				Maths.round((float) Math.toDegrees(eulerRad.z()), 2) + "]";
 		return s;
+	}
+
+	public static Euler fromDirVector(Vector3f dir, Euler dest)
+	{
+		dest = dest == null ? new Euler() : dest;
+
+		dir.normalize();
+
+		float pitch = (float) Math.acos(new Vector2f(dir.x(), dir.z()).length());
+		float yaw = dir.z() != 0 ? (float) Math.atan(dir.x() / dir.z()) : 0f;
+		yaw = dir.z() > 0 ? (float) (yaw - Math.PI) : yaw;
+		dest.setEulerRad(new Vector3f(pitch, yaw, 0));
+
+		return dest;
+	}
+
+	public Vector3f asVector()
+	{
+		return eulerRad;
 	}
 }

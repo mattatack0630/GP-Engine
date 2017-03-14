@@ -1,5 +1,7 @@
 package engine;
 
+import rendering.DisplayManager;
+
 /**
  * Created by mjmcc on 12/22/2016.
  * <p>
@@ -9,21 +11,45 @@ package engine;
  * - Loading models
  * - Streaming Sounds
  */
-public class ResourceManagingThread implements Runnable
+public class ResourceManagingThread extends Thread
 {
+	private static final long SLEEP_TIME = 50;
+	private static Thread resourceThread;
 
-
-	public static void init()
+	public synchronized static void startThread()
 	{
 
+		resourceThread = new Thread(() -> {
+			DisplayManager.shareGlContextOnThread();
+
+			while (Engine.checkRunning())
+			{
+				update();
+				try
+				{
+					Thread.sleep(SLEEP_TIME);
+				} catch (InterruptedException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}, "ResourceThread");
+
+		resourceThread.start();
 	}
 
-	@Override
-	public void run()
+	public synchronized static void stopThread()
 	{
-		while (Engine.isRunning())
+		try
 		{
-
+			resourceThread.join();
+		} catch (InterruptedException e)
+		{
+			e.printStackTrace();
 		}
+	}
+
+	public static void update()
+	{
 	}
 }

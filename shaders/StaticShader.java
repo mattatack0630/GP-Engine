@@ -4,7 +4,8 @@ import models.RenderMaterial;
 import rendering.Color;
 import rendering.Light;
 import rendering.camera.Camera;
-import utils.math.linear.MatrixGenerator;
+import rendering.fbo.FboObject;
+import shaders.uniforms.BooleanUniform;
 import utils.math.linear.matrix.Matrix4f;
 import utils.math.linear.vector.Vector3f;
 
@@ -15,12 +16,24 @@ public class StaticShader extends ShaderProgram
 
 	public static final String VERTEX_SHADER = "StaticShaderV11.vp";
 	public static final String FRAGMENT_SHADER = "GlobalLightingShader.fp";
-	public static final String GEOMETRY_SHADER = "GlobalLightingShader.gp";
 	public static final int MAX_LIGHTS = 5;
+
+	private BooleanUniform shadowsOn;
+	private BooleanUniform texMapOn;
+	private BooleanUniform infoMapOn;
+	private BooleanUniform normalMapOn;
+	private BooleanUniform environmentMapOn;
+	private BooleanUniform lightingOn;
 
 	public StaticShader()
 	{
-		super(VERTEX_SHADER, GEOMETRY_SHADER, FRAGMENT_SHADER);
+		super(VERTEX_SHADER, FRAGMENT_SHADER);
+		shadowsOn = new BooleanUniform(this, "shadowsOn", true);
+		texMapOn = new BooleanUniform(this, "texMapOn", true);
+		infoMapOn = new BooleanUniform(this, "infoMapOn", true);
+		normalMapOn = new BooleanUniform(this, "normalMapOn", true);
+		environmentMapOn = new BooleanUniform(this, "enviroMapOn", true);
+		lightingOn = new BooleanUniform(this, "lightingOn", true);
 	}
 
 	protected void bindAttributes()
@@ -43,9 +56,7 @@ public class StaticShader extends ShaderProgram
 
 	public void loadViewMatrix(Camera camera)
 	{
-		Matrix4f matrix = MatrixGenerator.genViewMatrix(camera);
-		//Maths.createViewMatrix(camera);
-		super.loadMatrix("view", matrix);
+		super.loadMatrix("view", camera.getViewMatrix());
 	}
 
 	public void loadLights(List<Light> lightList)
@@ -75,25 +86,9 @@ public class StaticShader extends ShaderProgram
 		super.loadVectorArray("lightAttenuation", lightAttArray);
 	}
 
-	public void loadSpecularVariables(float reflectivity, float dampening)
-	{
-		super.loadFloat("surfaceReflectivity", reflectivity);
-		super.loadFloat("surfaceDampening", dampening);
-	}
-
 	public void loadTexture()
 	{
 		super.loadInteger("textureSampler", 0);
-	}
-
-	public void loadNormalMap()
-	{
-		super.loadInteger("normalSampler", 1);
-	}
-
-	public void loadFlatShading(boolean b)
-	{
-		super.loadBoolean("flatShading", b);
 	}
 
 	public void loadDebugColor(Color debugColor)
@@ -113,5 +108,48 @@ public class StaticShader extends ShaderProgram
 	public void loadRangeLog(float logRange)
 	{
 		super.loadFloat("rangeLog", logRange);
+	}
+
+	public void loadShadowMap(FboObject shadowMap, Matrix4f shadowMapConversion, int place)
+	{
+		super.loadTexture("shadowMap", shadowMap.getDepthAttachment(), place);
+		super.loadFloat("shadowMapSize", shadowMap.getDimensions().x());
+		super.loadMatrix("shadowSpaceConversion", shadowMapConversion);
+	}
+
+	public void loadShadowOn(boolean on)
+	{
+		shadowsOn.setValue(on);
+		shadowsOn.loadToShader();
+	}
+
+	public void loadTexMapOn(boolean on)
+	{
+		texMapOn.setValue(on);
+		texMapOn.loadToShader();
+	}
+
+	public void loadInfoMapOn(boolean on)
+	{
+		infoMapOn.setValue(on);
+		infoMapOn.loadToShader();
+	}
+
+	public void loadNormalMapOn(boolean on)
+	{
+		normalMapOn.setValue(on);
+		normalMapOn.loadToShader();
+	}
+
+	public void loadEnvironmentMapOn(boolean on)
+	{
+		environmentMapOn.setValue(on);
+		environmentMapOn.loadToShader();
+	}
+
+	public void loadLightingOn(boolean on)
+	{
+		lightingOn.setValue(on);
+		lightingOn.loadToShader();
 	}
 }

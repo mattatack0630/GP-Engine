@@ -4,9 +4,9 @@ import utils.math.linear.vector.Vector3f;
 
 /**
  * Light Class
- *
+ * <p>
  * The light class is used by the renderers to simulate light
- * */
+ */
 public class Light
 {
 	//No attenuation used to non-attenuating sources like the sun
@@ -51,5 +51,10 @@ public class Light
 	public void setAttenuation(Vector3f attenuation)
 	{
 		this.attenuation = attenuation;
+	}
+
+	public static Vector3f attenuationFromDist(float dist)
+	{
+		return new Vector3f(1, 10 / dist, 0);
 	}
 }

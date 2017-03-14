@@ -1,14 +1,10 @@
 package gui.Component;
 
 import gui.Align;
-import gui.CSS.Identifier;
 import gui.Component.Content.Content;
-import gui.Component.Panel.HPanel;
 import gui.Component.Panel.Panel;
-import gui.Component.Panel.VPanel;
+import gui.Identifier;
 import gui.InteractiveComponents.InteractiveBase;
-import gui.Text.TextAttributes;
-import gui.XML.XMLNode;
 import rendering.Color;
 import rendering.renderers.MasterRenderer;
 import rendering.renderers.Trinket2D;
@@ -24,11 +20,10 @@ import java.util.List;
  * This Class is used to Display content on the screen.
  * Has various attributes used to display the content differently.
  * Also Stores data used to position the elements.
- * */
-public class Component extends InteractiveBase
+ */
+public abstract class Component extends InteractiveBase
 {
 	public String printableName;
-
 	public Identifier identifier;
 
 	public boolean shouldInheritSizeX;
@@ -51,12 +46,11 @@ public class Component extends InteractiveBase
 
 	public Align alignment;
 
-	// For rendering a box vaoObject
-	public float opacity;
 	public Color backgroundColor;
-	public Color marginColor;
 	public Color paddingColor;
 	public Color contentColor;
+	public Color marginColor;
+	public float opacity;
 
 	public Component(Vector2f relativePos)
 	{
@@ -148,7 +142,6 @@ public class Component extends InteractiveBase
 			absoluteSize.setY(maxSize.y());
 	}
 
-	// Find out what this is used for
 	public void updateContent()
 	{
 		if (content == null)
@@ -172,7 +165,24 @@ public class Component extends InteractiveBase
 
 	public void render(MasterRenderer renderer)
 	{
-		Trinket2D.drawRect(absolutePos, absoluteSize, backgroundColor, opacity);
+		if (marginColor.getA() != 0.0)
+		{
+			Trinket2D.setDrawColor(new Color(marginColor.getR(), marginColor.getG(),
+					marginColor.getB(), opacity * marginColor.getA()));
+			Trinket2D.drawRectangle(absolutePos, getSizeWithMargin());
+		}
+		if (backgroundColor.getA() != 0.0)
+		{
+			Trinket2D.setDrawColor(new Color(backgroundColor.getR(), backgroundColor.getG(),
+					backgroundColor.getB(), opacity * backgroundColor.getA()));
+			Trinket2D.drawRectangle(absolutePos, absoluteSize);
+		}
+		if (contentColor.getA() != 0.0 && content != null)
+		{
+			Trinket2D.setDrawColor(new Color(contentColor.getR(), contentColor.getG(),
+					contentColor.getB(), opacity * contentColor.getA()));
+			Trinket2D.drawRectangle(absolutePos, content.getSize());
+		}
 
 		if (content != null)
 			content.render(renderer);
@@ -195,11 +205,6 @@ public class Component extends InteractiveBase
 		this.identifier.addIdName(id);
 	}
 
-	public void addClassName(String name)
-	{
-		this.identifier.addClassName(name);
-	}
-
 	public void calculateFinalSize()
 	{
 		calculateSize(prefSize);
@@ -219,7 +224,6 @@ public class Component extends InteractiveBase
 		return s;
 	}
 
-	/**XML Stuff*/
 	public void applyAttrib(String name, String value)
 	{
 		switch (name)
@@ -249,6 +253,8 @@ public class Component extends InteractiveBase
 					content.size.setY(Float.parseFloat(value));
 				break;
 			case "minwidth":
+
+				System.out.println("name " + name + "  " + value);
 				if (value.toLowerCase().equals("fillparent"))
 					this.shouldInheritSizeX = true;
 				else minSize.setX(Float.parseFloat(value));
@@ -274,93 +280,5 @@ public class Component extends InteractiveBase
 
 				break;
 		}
-	}
-
-	public void applyAttribList(ArrayList<String> attribList)
-	{
-		for (String attrib : attribList)
-		{
-			String[] data = attrib.split("=");
-			if (data.length < 2)
-				continue;
-
-			String name = data[0].toLowerCase();
-			String value = ExtraUtils.stripChars(data[1], '"');
-
-			applyAttrib(name, value);
-		}
-
-		if (content != null)
-		{
-			content.updateDimension(content.position, content.size);
-			this.calculateSize(content.size);
-		}
-	}
-
-	/**
-	 * Make a component based off a XML Node, type and attributes
-	 */
-	public static Component fromXML(XMLNode node)
-	{
-		Component c = null;
-
-		switch (node.type.toLowerCase())
-		{
-			case "panel":
-				c = new Panel(new Vector2f());
-				break;
-
-			case "hpanel":
-				c = new HPanel();
-				break;
-
-			case "vpanel":
-				c = new VPanel();
-				break;
-
-			case "animatedtexture":
-				c = new AnimatedTextureComponent();
-				break;
-
-			case "button":
-				c = new ButtonComponent(new Vector2f());
-				break;
-
-			case "checkbox":
-				c = new CheckBoxComponent();
-				break;
-
-			case "component":
-				c = new Component(new Vector2f());
-				break;
-
-			case "label":
-				c = new LabelComponent("","Arial", new TextAttributes());
-				break;
-
-			case "radio":
-				c = new RadioComponent();
-				break;
-
-			case "slider":
-				c = new SliderComponent(new Vector2f());
-				break;
-
-			case "textinput":
-				c = new TextInputComponent();
-				break;
-
-			case "texture":
-				//c = new TextureComponent();
-				break;
-
-			default:
-				c = new Component(new Vector2f());
-				break;
-		}
-
-		c.updateContent();
-
-		return c;
 	}
 }

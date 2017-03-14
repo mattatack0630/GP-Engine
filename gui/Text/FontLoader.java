@@ -53,7 +53,7 @@ public class FontLoader
 	 */
 	public static List<CharacterData> loadFontData(String fileName)
 	{
-		List<CharacterData> characters = new ArrayList<CharacterData>();
+		List<CharacterData> characters = new ArrayList<>();
 
 		try
 		{

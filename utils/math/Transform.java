@@ -23,13 +23,16 @@ public class Transform
 	public Vector3f position;
 	public Vector3f scale;
 
+	// keeps track of matrix changes
+	private boolean needsUpdating;
+
 	public Transform(Vector3f position, Rotation rotation, Vector3f scale)
 	{
 		this.rotation = rotation;
 		this.position = position;
 		this.scale = scale;
-		this.matrix = MatrixGenerator.genTransformMatrix(position, rotation, scale);
-		//Maths.createMatrix(rotation, position, scale);
+		this.matrix = MatrixGenerator.genTransformMatrix(position, rotation, scale, null);
+		this.needsUpdating = false;
 	}
 
 	public Transform(Matrix4f mat)
@@ -39,6 +42,7 @@ public class Transform
 		this.position = (Vector3f) decomposed[0];
 		this.scale = (Vector3f) decomposed[2];
 		this.matrix = new Matrix4f(mat);
+		this.needsUpdating = false;
 	}
 
 	public Transform()
@@ -47,31 +51,39 @@ public class Transform
 		this.position = new Vector3f();
 		this.scale = new Vector3f();
 		this.matrix = new Matrix4f();
+		this.needsUpdating = false;
 	}
 
 	public void update()
 	{
-		this.matrix = MatrixGenerator.genTransformMatrix(position, rotation, scale);
+		if (needsUpdating)
+		{
+			MatrixGenerator.genTransformMatrix(position, rotation, scale, this.matrix);
+			needsUpdating = false;
+		}
 	}
 
 	public void setRotation(Rotation rotation)
 	{
 		this.rotation = rotation;
+		this.needsUpdating = true;
 	}
 
 	public void setPosition(Vector3f position)
 	{
 		this.position = position;
-	}
-
-	public void setMatrix(Matrix4f matrix)
-	{
-		this.matrix = matrix;
+		this.needsUpdating = true;
 	}
 
 	public void setScale(Vector3f scale)
 	{
 		this.scale = scale;
+		this.needsUpdating = true;
+	}
+
+	public void setMatrix(Matrix4f matrix)
+	{
+		this.matrix = matrix;
 	}
 
 	public Rotation getRotation()

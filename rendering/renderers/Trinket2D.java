@@ -1,190 +1,187 @@
 package rendering.renderers;
 
+import engine.Engine;
 import gui.GuiTexture;
 import gui.Text.GuiText;
 import gui.Text.TextAttributes;
 import rendering.Color;
+import rendering.DisplayManager;
+import resources.TextureResource;
 import utils.math.linear.vector.Vector2f;
 
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * A Basic UI render Engine interface.
- * <p>
- * Created by mjmcc on 9/22/2016.
+ * Created by mjmcc on 3/2/2017.
  */
 public class Trinket2D
 {
-	private static MasterRenderer renderer;
+	private static final int TEXT_CACHE_SIZE = 25;
 
-	/**
-	 * gui Fields
-	 */
-	private static final int MAX_TEXTURES = 15;
-	// ready to be reused
-	private static ArrayList<GuiText> openTextures;
-	// currently in use
-	private static ArrayList<GuiText> closedTextures;
+	private static MasterRenderer masterRenderer;
+	private static Vector2f screen;
 
+	private static Color globalColor;
+	private static float globalOpacity;
+	private static float globalRotation;
+	private static TextAttributes globalAttributes;
 
-	/**
-	 * Text Fields
-	 */
-	//Open and closed lists to reuse the same initialized guiText objects
-	private static final int MAX_TEXTS = 15;
-	// ready to be reused
-	private static ArrayList<GuiText> openTexts;
-	// currently in use
-	private static ArrayList<GuiText> closedTexts;
-	private static TextAttributes globalAttribs;
-	private static String globalFont;
+	private static TextureResource ellipseTexture;
+	private static TextureResource triangleTexture;
+	private static TextureResource rectangleTexture;
 
-	public static void init(MasterRenderer _renderer)
+	private static Map<String, GuiText> textCache;
+
+	public static void init(MasterRenderer _masterRenderer)
 	{
-		renderer = _renderer;
+		masterRenderer = _masterRenderer;
+		screen = new Vector2f(DisplayManager.WIDTH, DisplayManager.HEIGHT);
 
-		openTexts = new ArrayList<>();
-		closedTexts = new ArrayList<>();
-		globalAttribs = new TextAttributes();
-		globalFont = "Arial";
-
-		// Initialize MAX_TEXTS amount of GuiText objects
-		for (int i = 0; i < MAX_TEXTS; i++)
-			openTexts.add(new GuiText("", globalFont, new Vector2f()));
+		globalOpacity = 1.0f;
+		globalColor = new Color(1, 1, 1, 1);
+		globalAttributes = new TextAttributes();
+		ellipseTexture = Engine.getResourceManager().loadResource(new TextureResource("ellipseTexture", "trinket_textures/elipse_texture"));
+		triangleTexture = Engine.getResourceManager().loadResource(new TextureResource("triangleTexture", "trinket_textures/triangle_texture"));
+		rectangleTexture = Engine.getResourceManager().loadResource(new TextureResource("rectangleTexture", "trinket_textures/rectangle_texture"));
+		textCache = new LinkedHashMap<>();
 	}
 
-	/*****************Text Rendering methods***************/
-
-	/**
-	 * Set the global font type
-	 *
-	 * @param fontName the font name, or font family name
-	 */
-	public static void setFont(String fontName)
+	public static void setTextAttributes(TextAttributes textAttribs)
 	{
-		globalFont = fontName;
+		globalAttributes = textAttribs;
 	}
 
-	/**
-	 * set the global text-attribs color
-	 *
-	 * @param color the color to set to
-	 */
-	public static void setFontColor(Color color)
+	public static void setDrawColor(Color color)
 	{
-		globalAttribs.setColor(color);
+		globalColor.setR(color.getR());
+		globalColor.setG(color.getG());
+		globalColor.setB(color.getB());
+		globalOpacity = color.getA();
 	}
 
-	/**
-	 * Copy these attribs to the global text attributes
-	 *
-	 * @param attribs the attribs to copy from
-	 */
-	public static void setGlobalAttribs(TextAttributes attribs)
+	public static void setDrawRotation(float rotation)
 	{
-		globalAttribs = new TextAttributes(attribs);
+		globalRotation = rotation;
 	}
 
-	/**
-	 * Render text using a string, generates the mesh if cant find in the textList.
-	 *
-	 * @param text the string to render on screen
-	 * @return the GuiText object created or found
-	 */
-	public static GuiText drawText(String text, float x, float y)
+	private static GuiText getTextFromCache(String name)
 	{
-		GuiText guiText = null;
-		for (GuiText gt : closedTexts)
+		GuiText guiText = textCache.get(name);
+		textCache.remove(name);
+
+		if (textCache.size() > TEXT_CACHE_SIZE)
 		{
-			if (globalFont.compareToIgnoreCase(gt.getFont().getName()) == 0)
-			{
-				if (gt.getText().equals(text))
-				{
-					guiText = gt;
-					guiText.setAttribs(new TextAttributes(globalAttribs));
-					break;
-				}
-			}
+			String fkey = textCache.keySet().iterator().next();
+			textCache.remove(fkey);
 		}
-
-		if (guiText == null)
-			guiText = generateText(text);
-
-		guiText.setPosition(new Vector2f(x, y));
-		renderer.processGuiText(guiText);
 
 		return guiText;
 	}
 
-	/**
-	 * Generate a new text, reusing one of the open guiTexts
-	 *
-	 * @param text the string to generate
-	 * @return the guitext generated
-	 */
-	private static GuiText generateText(String text)
+	public static GuiText drawText(String text, Vector2f center)
 	{
-		// if there are no texts to reuse, move some
-		if (openTexts.size() == 0)
-		{
-			GuiText oldest = closedTexts.get(0);
-			closedTexts.remove(oldest);
-			openTexts.add(oldest);
-		}
+		GuiText guiText = getTextFromCache(text);
 
-		GuiText openText = openTexts.get(0);
-		openText.setText(text);
-		openText.setFont(globalFont);
-		openText.setAttribs(new TextAttributes(globalAttribs));
-		openText.update(); // reuse the object to generate text
-		closedTexts.add(openText);
-		openTexts.remove(openText);
+		if (guiText == null || guiText.getFont().getName() != globalAttributes.getFont())
+			guiText = new GuiText(text, center, globalAttributes);
 
-		return openText;
+		guiText.setAttribs(globalAttributes);
+		guiText.setPosition(center);
+
+		textCache.put(text, guiText);
+		masterRenderer.processGuiText(guiText);
+
+		return guiText;
 	}
 
-	/**
-	 * Render using a GuiText object, preferred method
-	 *
-	 * @param text the text object to render
-	 * @return the GuiText object rendered
-	 */
-	public static GuiText drawText(GuiText text)
+	public static GuiText drawText(GuiText guiText, Vector2f center)
 	{
-		renderer.processGuiText(text);
-		return text;
+		guiText.setAttribs(globalAttributes);
+		guiText.setPosition(center);
+
+		textCache.put(guiText.getText(), guiText);
+		masterRenderer.processGuiText(guiText);
+
+		return guiText;
 	}
 
-	public static void setFontSize(float fontSize)
+	public static void drawEllipse(Vector2f center, Vector2f size)
 	{
-		globalAttribs.setFontSize(fontSize);
+		GuiTexture texture = new GuiTexture(ellipseTexture.getId(), center, size);
+		texture.setColor(globalColor);
+		texture.setOpacity(globalOpacity);
+		masterRenderer.processGuiTexture(texture);
 	}
 
-	/**
-	 * Render a GuiTexture as a Rectangle
-	 *
-	 * @param pos  the textures pos (from center)
-	 * @param size the size of the texture
-	 * @param c    the color of the texture (with alpha)
-	 */
-	public static void drawRect(Vector2f pos, Vector2f size, Color c)
+	public static void drawEllipsePX(Vector2f center, Vector2f size)
 	{
-		GuiTexture texture = new GuiTexture(c, pos, size); // change later to not dynamic allocate
-		renderer.processGuiTexture(texture);
+		Vector2f centerPX = new Vector2f((center.x() / screen.x() * 2.0f) - 1.0f, 1.0f - (center.y() / screen.y() * 2.0f));
+		Vector2f sizePX = new Vector2f(size.x() / screen.x() * 2.0f, size.y() / screen.y() * 2.0f);
+
+		GuiTexture texture = new GuiTexture(ellipseTexture.getId(), centerPX, sizePX);
+		texture.setColor(globalColor);
+		texture.setOpacity(globalOpacity);
+		masterRenderer.processGuiTexture(texture);
 	}
 
-	/**
-	 * Render a GuiTexture as a Rectangle
-	 *
-	 * @param pos     the textures pos (from center)
-	 * @param size    the size of the texture
-	 * @param c       the color of the texture (with alpha)
-	 * @param opacity the opacity of the overall square
-	 */
-	public static void drawRect(Vector2f pos, Vector2f size, Color c, float opacity)
+	public static void drawRectangle(Vector2f center, Vector2f size)
 	{
-		GuiTexture texture = new GuiTexture(c, pos, size); // change later to not dynamic allocate
-		texture.setOpacity(opacity);
-		renderer.processGuiTexture(texture);
+		GuiTexture texture = new GuiTexture(rectangleTexture.getId(), center, size);
+		texture.setColor(globalColor);
+		texture.setOpacity(globalOpacity);
+		texture.setRotation(globalRotation);
+		masterRenderer.processGuiTexture(texture);
+	}
+
+	public static void drawRectanglePX(Vector2f center, Vector2f size)
+	{
+		Vector2f centerPX = new Vector2f((center.x() / screen.x() * 2.0f) - 1.0f, 1.0f - (center.y() / screen.y() * 2.0f));
+		Vector2f sizePX = new Vector2f(size.x() / screen.x() * 2.0f, size.y() / screen.y() * 2.0f);
+
+		GuiTexture texture = new GuiTexture(rectangleTexture.getId(), centerPX, sizePX);
+		texture.setColor(globalColor);
+		texture.setOpacity(globalOpacity);
+		masterRenderer.processGuiTexture(texture);
+	}
+
+	public static void drawTriangle(Vector2f center, Vector2f size)
+	{
+		GuiTexture texture = new GuiTexture(triangleTexture.getId(), center, size);
+		texture.setColor(globalColor);
+		texture.setOpacity(globalOpacity);
+		masterRenderer.processGuiTexture(texture);
+	}
+
+	public static void drawTrianglePX(Vector2f center, Vector2f size)
+	{
+		Vector2f centerPX = new Vector2f((center.x() / screen.x() * 2.0f) - 1.0f, 1.0f - (center.y() / screen.y() * 2.0f));
+		Vector2f sizePX = new Vector2f(size.x() / screen.x() * 2.0f, size.y() / screen.y() * 2.0f);
+
+		GuiTexture texture = new GuiTexture(triangleTexture.getId(), centerPX, sizePX);
+		texture.setColor(globalColor);
+		texture.setOpacity(globalOpacity);
+		masterRenderer.processGuiTexture(texture);
+	}
+
+	public static void drawTexture(GuiTexture texture, Vector2f center, Vector2f size)
+	{
+		texture.setSize(size);
+		texture.setPosition(center);
+		texture.setColor(globalColor);
+		texture.setOpacity(globalOpacity);
+		masterRenderer.processGuiTexture(texture);
+	}
+
+	public static void drawTexturePX(GuiTexture texture, Vector2f center, Vector2f size)
+	{
+		Vector2f centerPX = new Vector2f((center.x() / screen.x() * 2.0f) - 1.0f, 1.0f - (center.y() / screen.y() * 2.0f));
+		Vector2f sizePX = new Vector2f(size.x() / screen.x() * 2.0f, size.y() / screen.y() * 2.0f);
+
+		texture.setSize(sizePX);
+		texture.setPosition(centerPX);
+		texture.setColor(globalColor);
+		texture.setOpacity(globalOpacity);
+		masterRenderer.processGuiTexture(texture);
 	}
 }

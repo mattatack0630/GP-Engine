@@ -5,7 +5,7 @@ import gui.Component.LabelComponent;
 import gui.Component.Panel.Panel;
 import gui.Transition.MoveTransition;
 import gui.Transition.OpacityTransition;
-import gui.XML.XMLParser;
+import gui.XML.SXMLParser;
 import utils.Timer;
 import utils.math.linear.vector.Vector2f;
 
@@ -31,7 +31,7 @@ public class PopupGui extends GuiScene
 
 	public PopupGui(String message, float timeUp, float speed, Align alignment, String srcXml)
 	{
-		this.addPanels(XMLParser.parseXMLFromFile(srcXml).getDirectChildren());
+		this.addPanels(SXMLParser.parse(srcXml).getDirectChildren());
 
 		this.messageLabel = (LabelComponent) this.getChildById("message");
 		this.contentPanel = (Panel) this.getChildById("messagePanel");
@@ -68,7 +68,7 @@ public class PopupGui extends GuiScene
 	{
 		// Check for content, message, etc
 		directChildren.clear();
-		addPanels(XMLParser.parseXMLFromFile(path).getDirectChildren());
+		addPanels(SXMLParser.parse(path).getDirectChildren());
 		calculateMovement(alignment);
 	}
 

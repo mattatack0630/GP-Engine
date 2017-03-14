@@ -4,6 +4,9 @@ import utils.math.Maths;
 import utils.math.Transform;
 import utils.math.linear.vector.Vector3f;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * Created by mjmcc on 12/27/2016.
  */
@@ -11,21 +14,23 @@ public class ParticleSystem
 {
 	private Transform transform;
 	private Particle baseParticle;
-	private int spawnRate;
+	private List<Particle> particles;
 	private int spawnAmount;
+	private int spawnRate;
 	private int lastSpawn;
 
 	public ParticleSystem(Particle particle)
 	{
-		this.baseParticle = particle;
-		this.spawnRate = 50;
-		this.spawnAmount = 1;
 		this.transform = new Transform();
+		this.baseParticle = particle;
+		this.spawnAmount = 1;
+		this.spawnRate = 50;
+		this.particles = new LinkedList<>();
 	}
 
 	public void update()
 	{
-		lastSpawn++;
+		lastSpawn++; // maybe use seconds
 
 		if (lastSpawn > spawnRate)
 		{
@@ -42,7 +47,6 @@ public class ParticleSystem
 				ParticleManager.addParticle(p);
 			}
 		}
-
 	}
 
 	public void setPosition(Vector3f position)

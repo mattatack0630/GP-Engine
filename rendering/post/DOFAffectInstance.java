@@ -8,17 +8,19 @@ import rendering.fbo.FboObject;
 public class DOFAffectInstance extends PostAffectInstance
 {
 	private float blurValue;
+	private float distance;
 
-	public DOFAffectInstance(float blurValue)
+	public DOFAffectInstance(float blurValue, float distance)
 	{
 		this.blurValue = blurValue;
+		this.distance = distance;
 	}
 
 	@Override
 
 	public FboObject callAffect(FboObject currentScreen)
 	{
-		PostProcessor.dofAffect.setAffectVars(blurValue);
+		PostProcessor.dofAffect.setAffectVars(blurValue, distance);
 		return PostProcessor.dofAffect.processAffect(currentScreen);
 	}
 }

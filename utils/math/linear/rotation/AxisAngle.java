@@ -19,7 +19,7 @@ public class AxisAngle implements Rotation
 
 	public Vector3f getAxis()
 	{
-		return axis;
+		return axis.normalize();
 	}
 
 	public float getAngleRad()

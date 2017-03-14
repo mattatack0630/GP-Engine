@@ -19,7 +19,7 @@ public class SoundResource extends Resource
 	}
 
 	@Override
-	public void load()
+	public void load(ResourceManager resManager)
 	{
 		sound = DirectSound.fromWavFile(location);
 	}

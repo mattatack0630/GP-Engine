@@ -1,9 +1,9 @@
 package gui.Component;
 
+import engine.Engine;
 import gui.Component.Content.ButtonContent;
 import gui.GuiTexture;
 import rendering.Color;
-import resources.ResourceManager;
 import resources.TextureResource;
 import utils.math.linear.vector.Vector2f;
 
@@ -12,7 +12,7 @@ import utils.math.linear.vector.Vector2f;
  */
 public class ButtonComponent extends Component
 {
-	ButtonContent buttonContent;
+	private ButtonContent buttonContent;
 
 	public ButtonComponent(Vector2f size)
 	{
@@ -60,7 +60,7 @@ public class ButtonComponent extends Component
 		switch (name)
 		{
 			case "clickimage":
-				int cId = ResourceManager.loadResource(new TextureResource(value, value)).getId();
+				int cId = Engine.getResourceManager().loadResource(new TextureResource(value, value)).getId();
 				setOnClickTexture(new GuiTexture(cId, absolutePos, absoluteSize));
 				break;
 
@@ -70,7 +70,7 @@ public class ButtonComponent extends Component
 				break;
 
 			case "staticimage":
-				int sId = ResourceManager.loadResource(new TextureResource(value, value)).getId();
+				int sId = Engine.getResourceManager().loadResource(new TextureResource(value, value)).getId();
 				setStaticTexture(new GuiTexture(sId, absolutePos, absoluteSize));
 				break;
 

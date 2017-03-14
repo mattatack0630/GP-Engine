@@ -22,8 +22,14 @@ public class TextureResource extends Resource
 		super(name, TEXTURES_FOLDER + location + TEXTURES_EXT);
 	}
 
+	public void setTextureParam(int paramName, int paramValue)
+	{
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, getId());
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, paramName, paramValue);
+	}
+
 	@Override
-	public void load()
+	public void load(ResourceManager resManager)
 	{
 		try
 		{

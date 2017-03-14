@@ -26,7 +26,7 @@ public class RenderData
 
 	public RenderData(Vector3f pos)
 	{
-		this(pos, new Euler(), new Vector3f(1, 1, 1));
+		this(pos, new Euler(), new Vector3f(1));
 	}
 
 	public RenderData(Vector3f pos, Rotation rot, Vector3f s)

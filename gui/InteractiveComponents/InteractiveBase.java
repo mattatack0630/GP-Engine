@@ -1,7 +1,5 @@
 package gui.InteractiveComponents;
 
-import input.KeyHandler;
-import input.KeyUsable;
 import utils.math.linear.vector.Vector2f;
 
 /**
@@ -9,36 +7,45 @@ import utils.math.linear.vector.Vector2f;
  */
 public class InteractiveBase implements KeyUsable, Clickable
 {
-	private ClickChecker c;
+	private ClickChecker clickChecker;
+	private KeyChecker keyChecker;
 	private Vector2f position;
 	private Vector2f size;
 
+	private boolean released;
+	private boolean hovered;
+	private boolean pressed;
+	private boolean clicked;
+
 	public InteractiveBase(Vector2f position, Vector2f size)
 	{
-		KeyHandler.addKeyUser(this);
-		c = new ClickChecker(position.x(), position.y(), size.x() / 2f, size.y() / 2f, this);
+		this.keyChecker = new KeyChecker(this);
+		this.clickChecker = new ClickChecker(position.x(), position.y(), size.x() / 2f, size.y() / 2f, this);
 		this.position = new Vector2f(position);
 		this.size = new Vector2f(size);
+		this.released = false;
+		this.hovered = false;
+		this.pressed = false;
 	}
 
 	public void tick()
 	{
-		c.checkClick();
+		clicked = false;
+		released = false;
+		hovered = false;
+		clickChecker.checkClick();
+		keyChecker.checkKey();
 	}
 
 	public void updateInteractive(Vector2f position, Vector2f size)
 	{
-		c.setClickDimensions(position.x(), position.y(), size.x() / 2f, size.y() / 2f);
+		clickChecker.setClickDimensions(position.x(), position.y(), size.x() / 2f, size.y() / 2f);
 		this.position = new Vector2f(position);
 		this.size = new Vector2f(size);
 	}
 
-	@Override
-	public void onHover()
-	{
-		//systems.out.println("Hover "+this.getClass());
-	}
 
+	// Mouse Methods
 	@Override
 	public void onBeginHover()
 	{
@@ -52,51 +59,82 @@ public class InteractiveBase implements KeyUsable, Clickable
 	}
 
 	@Override
-	public void onClick()
+	public void onPress()
 	{
-		//systems.out.println("Clicked");
-	}
-
-	@Override
-	public void onRelease()
-	{
-		//systems.out.println("Released");
+		//systems.out.println("Pressing \tcode :" + i +" char : "+clickChecker);
 	}
 
 	@Override
 	public void onHold()
 	{
-		//systems.out.println("Holding Key");
+		hovered = true;
+		pressed = true;
 	}
 
 	@Override
-	public void onPress()
+	public void onRelease()
 	{
-		//systems.out.println("Pressing \tcode :" + i +" char : "+c);
+		pressed = false;
+		released = true;
+	}
+
+	@Override
+	public void onClick()
+	{
+		clicked = true;
+	}
+
+	@Override
+	public void onHover()
+	{
+		hovered = true;
 	}
 
 
+	// Keyboard Methods
 	@Override
 	public void onKeyPress(int i, char c)
 	{
-		//systems.out.println("Pressed \tcode :" + i +" char : "+c);
+		//System.out.println("Pressed \tcode :" + i +" char : "+clickChecker);
 	}
 
 	@Override
 	public void onKeyRepress(int i, char c)
 	{
-		//systems.out.println("Pressed \tcode :" + i +" char : "+c);
+		//System.out.println("REPressed \tcode :" + i +" char : "+clickChecker);
 	}
 
 	@Override
 	public void onKeyRelease(int i, char c)
 	{
-		//systems.out.println("Released \tcode :" + i +" char : "+c);
+		//System.out.println("Released \tcode :" + i +" char : "+clickChecker);
 	}
 
 	@Override
-	public void onKeyHold(int i, char c)
+	public void onKeyClick(int i, char c)
 	{
-		//systems.out.println("Holding \tcode :" + i +" char : "+c);
+		//System.out.println("Clicking \tcode :" + i +" char : "+clickChecker);
+	}
+
+
+	// State Queries
+	public boolean isReleased()
+	{
+		return released;
+	}
+
+	public boolean isClicked()
+	{
+		return clicked;
+	}
+
+	public boolean isHovered()
+	{
+		return hovered;
+	}
+
+	public boolean isPressed()
+	{
+		return pressed;
 	}
 }

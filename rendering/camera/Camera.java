@@ -1,23 +1,106 @@
 package rendering.camera;
 
-import utils.math.linear.LinearAlgebra;
-import utils.math.linear.MatrixGenerator;
+import utils.math.geom.AABB;
 import utils.math.linear.matrix.Matrix4f;
 import utils.math.linear.vector.Vector3f;
 
-public class Camera
+public abstract class Camera
 {
-	private static float SPEED = .15f;
-	private static float TURN_SPEED = .15f;
+	public Matrix4f projectionMatrix;
+	public Matrix4f viewMatrix;
 
-	private Matrix4f projectionMatrix;
-	public Frustum clippingFrustum;
+	protected float nearPlane;
+	protected float farPlane;
+
+	protected Vector3f position;
+	protected Vector3f rotation;
+
+	protected Vector3f up;
+	protected Vector3f right;
+	protected Vector3f forward;
+
+	protected float logRange;
+
+	public abstract void update();
+
+	public abstract boolean inView(AABB aabb);
+
+	public abstract Vector3f[] getFrustPoints();
+
+	public float getLogRange()
+	{
+		// Used in picking algorithm
+		return logRange;
+	}
+
+	public Vector3f getUp()
+	{
+		return up;
+	}
+
+	public Vector3f getRight()
+	{
+		return right;
+	}
+
+	public Vector3f getForward()
+	{
+		return forward;
+	}
+
+	public Vector3f getPosition()
+	{
+		return position;
+	}
+
+	public Vector3f getRotation()
+	{
+		return rotation;
+	}
+
+	public Matrix4f getViewMatrix()
+	{
+		return viewMatrix;
+	}
+
+	public Matrix4f getProjection()
+	{
+		return projectionMatrix;
+	}
+
+	public void setPosition(Vector3f position)
+	{
+		this.position = position;
+	}
+
+	public void setRotation(Vector3f rotation)
+	{
+		this.rotation = rotation;
+	}
+
+	public float getFarPlane()
+	{
+		return farPlane;
+	}
+
+	public float getNearPlane()
+	{
+		return nearPlane;
+	}
+
+/*	private Frustum clippingFrustum;
+	public Matrix4f projectionMatrix;
+	public Matrix4f viewMatrix;
 	public float near;
 	public float far;
 	public float fov;
 
 	private Vector3f position;
 	private Vector3f rotation;
+
+	private Vector3f up;
+	private Vector3f right;
+	private Vector3f forward;
 
 	private float logRange;
 
@@ -26,12 +109,11 @@ public class Camera
 		this.position = position;
 		this.rotation = rotation;
 
-		this.projectionMatrix = MatrixGenerator.genPerspectiveMatrix(near, far, (float) Math.toRadians(fov));
-		//Maths.createPerspectiveMatrix(near, far, fov);
-
 		this.fov = (float) Math.toRadians(fov);
 		this.near = near;
 		this.far = far;
+
+		this.projectionMatrix = MatrixGenerator.genPerspectiveMatrix(this.near, this.far, this.fov, null);
 
 		this.logRange = (float) (1.0f / Math.log(near + far + 1));
 		this.clippingFrustum = new Frustum();
@@ -44,12 +126,14 @@ public class Camera
 		rot.rotate(rotation.y(), new Vector3f(0, -1, 0));
 		rot.rotate(rotation.x(), new Vector3f(-1, 0, 0));
 
-		Vector3f up = LinearAlgebra.mult(rot, Vector3f.UP, null);
-		Vector3f right = LinearAlgebra.mult(rot, Vector3f.RIGHT, null);
-		Vector3f forward = LinearAlgebra.mult(rot, Vector3f.FORWARD, null);
+		up = LinearAlgebra.mult(rot, Vector3f.UP, up);
+		right = LinearAlgebra.mult(rot, Vector3f.RIGHT, right);
+		forward = LinearAlgebra.mult(rot, Vector3f.FORWARD, forward);
 
 		/*Frustum*/
-		clippingFrustum.update(position, up, right, forward, fov, far);
+		/*clippingFrustum.update(position, up, right, forward, fov, far);
+
+		viewMatrix = MatrixGenerator.genViewMatrix(this);
 	}
 
 	public void setPosition(Vector3f position)
@@ -60,6 +144,11 @@ public class Camera
 	public Matrix4f getProjection()
 	{
 		return projectionMatrix;
+	}
+
+	public Matrix4f getViewMatrix()
+	{
+		return viewMatrix;
 	}
 
 	public Vector3f getPosition()
@@ -87,9 +176,9 @@ public class Camera
 		return far;
 	}
 
-	// Used in picking algorithm
 	public float getLogRange()
 	{
+		// Used in picking algorithm
 		return logRange;
 	}
 
@@ -97,4 +186,19 @@ public class Camera
 	{
 		return clippingFrustum;
 	}
+
+	public Vector3f getUp()
+	{
+		return up;
+	}
+
+	public Vector3f getRight()
+	{
+		return right;
+	}
+
+	public Vector3f getForward()
+	{
+		return forward;
+	}*/
 }

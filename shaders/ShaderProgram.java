@@ -5,6 +5,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL32;
+import shaders.uniforms.Uniform;
 import utils.math.linear.matrix.Matrix;
 import utils.math.linear.matrix.Matrix4f;
 import utils.math.linear.vector.Vector2f;
@@ -127,7 +128,7 @@ public abstract class ShaderProgram
 		GL20.glUniform1i(location, value);
 	}
 
-	protected void loadBoolean(String variableName, boolean value)
+	public void loadBoolean(String variableName, boolean value)
 	{
 		int location = getUniformLocation(variableName);
 
@@ -139,13 +140,6 @@ public abstract class ShaderProgram
 		int location = getUniformLocation(variableName);
 
 		GL20.glUniform2f(location, value.x(), value.y());
-	}
-
-	protected void loadVector2(String variableName, float[] value)
-	{
-		int location = getUniformLocation(variableName);
-
-		GL20.glUniform2f(location, value[0], value[1]);
 	}
 
 	public void loadVector3(String variableName, Vector3f value)
@@ -160,13 +154,6 @@ public abstract class ShaderProgram
 		int location = getUniformLocation(variableName);
 
 		GL20.glUniform4f(location, value.x(), value.y(), value.z(), value.w());
-	}
-
-	protected void loadVector4(String variableName, float[] value)
-	{
-		int location = getUniformLocation(variableName);
-
-		GL20.glUniform4f(location, value[0], value[1], value[3], value[4]);
 	}
 
 	protected void loadVectorArray(String variableName, Vector3f[] vectors)
@@ -263,5 +250,13 @@ public abstract class ShaderProgram
 		GL20.glUniform1i(getUniformLocation(name), place);
 	}
 
+	public void loadUniform(Uniform uniform)
+	{
+		uniform.loadToShader();
+	}
 
+	public int getId()
+	{
+		return programID;
+	}
 }

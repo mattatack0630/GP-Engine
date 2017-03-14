@@ -31,7 +31,7 @@ public class AnimatedModelResource extends Resource
 	}
 
 	@Override
-	public void load()
+	public void load(ResourceManager resManager)
 	{
 		// Parse the lime file
 		LimeData data = LimeParser.parseLimeFile(location);
@@ -43,11 +43,11 @@ public class AnimatedModelResource extends Resource
 		// Get Material
 		RenderMaterial material = modelBuilder.buildMaterial();
 
-		textureMapRes = (TextureResource) ResourceManager.loadResource(new TextureResource(data.textureMapFile.getName(),
+		textureMapRes = resManager.loadResource(new TextureResource(data.textureMapFile.getName(),
 				DIFFUSE_FOLDER + data.textureMapFile.getPath()));
-		normalMapRes = (TextureResource) ResourceManager.loadResource(new TextureResource(data.normalMapFile.getName(),
+		normalMapRes = resManager.loadResource(new TextureResource(data.normalMapFile.getName(),
 				NORMAL_FOLDER + data.normalMapFile.getPath()));
-		infoMapRes = (TextureResource) ResourceManager.loadResource(new TextureResource(data.specMapFile.getName(),
+		infoMapRes = resManager.loadResource(new TextureResource(data.specMapFile.getName(),
 				INFO_FOLDER + data.specMapFile.getPath()));
 
 		// Build textured vaoObject

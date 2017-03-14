@@ -18,14 +18,12 @@ public class ParticleManager
 {
 	private static List<Particle> particles = new ArrayList<>();
 
-	// Called Once per frame from the Engine
 	public static void render(MasterRenderer renderer)
 	{
 		for (Particle p : particles)
 			renderer.processParticle(p);
 	}
 
-	// Called once per frame by the Engine
 	public static void tick(Camera camera)
 	{
 		// for each particle
@@ -41,7 +39,6 @@ public class ParticleManager
 			if (p.getLife() >= p.getLifeSpan())
 				removeParticle(p);
 		}
-
 
 		Sorter.insertionSort(particles);
 	}

@@ -5,9 +5,8 @@ import animation.Keyframe;
 import animation.ModelAnimation;
 import parsing.utils.ParsingUtils;
 import parsing.utils.Validator;
-import resources.ResourceManager;
 import utils.math.Maths;
-import utils.math.geom.AABB;
+import utils.math.geom.AABBmm;
 import utils.math.linear.matrix.Matrix4f;
 import utils.math.linear.rotation.Quaternion;
 import utils.math.linear.vector.Vector2f;
@@ -24,6 +23,10 @@ import java.util.List;
  */
 public class LimeData
 {
+	public static final String DEF_INFO_LOC = "defualt_info";
+	public static final String DEF_TEX_LOC = "defualt_texture";
+	public static final String DEF_NORM_LOC = "defualt_normal";
+
 	public List<Vector3f> vertices;
 	public List<Vector2f> texture;
 	public List<Vector3f> tangent;
@@ -42,7 +45,7 @@ public class LimeData
 	public File specMapFile;
 	public String modelName;
 
-	public AABB modelBounds;
+	public AABBmm modelBounds;
 
 	public LimeData()
 	{
@@ -60,11 +63,11 @@ public class LimeData
 
 		modelName = "Model@" + hashCode();
 
-		specMapFile = new File(ResourceManager.DEF_INFO_LOC);
-		normalMapFile = new File(ResourceManager.DEF_NORM_LOC);
-		textureMapFile = new File(ResourceManager.DEF_TEX_LOC);
+		specMapFile = new File(DEF_INFO_LOC);
+		normalMapFile = new File(DEF_NORM_LOC);
+		textureMapFile = new File(DEF_TEX_LOC);
 
-		this.modelBounds = new AABB(AABB.BOUNDS_MIN, AABB.BOUNDS_MAX);
+		this.modelBounds = new AABBmm(AABBmm.BOUNDS_MIN, AABBmm.BOUNDS_MAX);
 	}
 
 	public void addTextureCoord(String content)
@@ -149,8 +152,13 @@ public class LimeData
 			weight[i] = boneWeight;
 		}
 
-		boneSkinIndex.add((Vector4f) ParsingUtils.toVector(index)); // Stored as SID's for now
-		boneSkinWeight.add((Vector4f) ParsingUtils.toVector(weight));
+		// Stored as SID's for now
+		Vector4f i = (Vector4f) ParsingUtils.toVector(index);
+		Vector4f w = (Vector4f) ParsingUtils.toVector(weight);
+		if (w.lengthSquared() != 0) w.scale(1.0f / (w.x() + w.y() + w.z() + w.w()));
+
+		boneSkinIndex.add(i);
+		boneSkinWeight.add(w);
 	}
 
 	public void buildFace(String content)
@@ -188,11 +196,11 @@ public class LimeData
 			Vector2f tex1 = texture.get((int) face.y());
 			Vector2f tex2 = texture.get((int) face.z());
 
-			Vector3f tang = Maths.calculateTangent(vert0, vert1, vert2, tex0, tex1, tex2);
+			Vector3f tang0 = Maths.calculateTangent(vert0, vert1, vert2, tex0, tex1, tex2);
 
-			tangent.set((int) face.x(), Vector3f.add(tangent.get((int) face.x()), tang, null));
-			tangent.set((int) face.y(), Vector3f.add(tangent.get((int) face.y()), tang, null));
-			tangent.set((int) face.z(), Vector3f.add(tangent.get((int) face.z()), tang, null));
+			tangent.set((int) face.x(), Vector3f.add(tangent.get((int) face.x()), tang0, null));
+			tangent.set((int) face.y(), Vector3f.add(tangent.get((int) face.y()), tang0, null));
+			tangent.set((int) face.z(), Vector3f.add(tangent.get((int) face.z()), tang0, null));
 		}
 
 		for (int i = 0; i < tangent.size(); i++)
@@ -305,7 +313,7 @@ public class LimeData
 		return bones;
 	}
 
-	public AABB getBoundingBox()
+	public AABBmm getBoundingBox()
 	{
 		return modelBounds;
 	}

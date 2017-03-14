@@ -27,7 +27,6 @@ public class PickingComponent extends EntityComponent implements Pickable
 	@Override
 	public void onPick()
 	{
-		System.out.println("Test");
 		isPicked = true;
 	}
 

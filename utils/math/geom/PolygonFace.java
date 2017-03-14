@@ -40,7 +40,7 @@ public class PolygonFace
 	}
 
 	/**
-	 * Calculate and set this face's plane
+	 * Calculate and setElements this face's plane
 	 */
 	public Plane constructPlane()
 	{

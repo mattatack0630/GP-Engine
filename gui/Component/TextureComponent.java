@@ -1,7 +1,7 @@
 package gui.Component;
 
+import engine.Engine;
 import gui.Component.Content.TextureContent;
-import resources.ResourceManager;
 import resources.TextureResource;
 import utils.math.linear.vector.Vector2f;
 
@@ -16,7 +16,7 @@ public class TextureComponent extends Component
 	{
 		super(new Vector2f());
 
-		int id = ResourceManager.loadResource(new TextureResource(textureLocation, textureLocation)).getId();
+		int id = Engine.getResourceManager().loadResource(new TextureResource(textureLocation, textureLocation)).getId();
 		textureContent = new TextureContent(this, new Vector2f(), size, id);
 		setContent(textureContent);
 	}

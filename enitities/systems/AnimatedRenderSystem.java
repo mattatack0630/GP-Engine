@@ -14,25 +14,11 @@ import java.util.Map;
  */
 public class AnimatedRenderSystem extends EntitySystem
 {
-	Map<Entity, AnimatedModelComponent> components;
+	private Map<Entity, AnimatedModelComponent> components;
 
 	public AnimatedRenderSystem()
 	{
 		this.components = new HashMap<>();
-	}
-
-	@Override
-	public void addEntity(Entity e)
-	{
-		AnimatedModelComponent component = e.getComponent(AnimatedModelComponent.class);
-		if (component != null)
-			components.put(e, component);
-	}
-
-	@Override
-	public void removeEntity(Entity e)
-	{
-		components.remove(e);
 	}
 
 	@Override
@@ -57,5 +43,11 @@ public class AnimatedRenderSystem extends EntitySystem
 			AnimatedModelComponent component = components.get(e);
 			renderer.processAnimatedModel(new AnimatedRenderObject(component.getModel(), component.getAnimatedRenderData()));
 		}
+	}
+
+	@Override
+	public void setupNeededComponents()
+	{
+		super.addNeededComponent(AnimatedModelComponent.class, components);
 	}
 }

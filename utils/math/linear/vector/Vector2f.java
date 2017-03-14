@@ -118,4 +118,11 @@ public class Vector2f extends Vector
 		Vector.multElements(left, right, dest);
 		return dest;
 	}
+
+	public static Vector2f scale(Vector2f left, float scale, Vector2f dest)
+	{
+		dest = dest == null ? new Vector2f() : dest;
+		Vector.scale(left, scale, dest);
+		return dest;
+	}
 }

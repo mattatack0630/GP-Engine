@@ -17,7 +17,14 @@ public class AudioStreamer
 	private static final int MAX_REFILL = 2;
 
 	// Map to hold the pairs of Streams and their sources
-	public static Map<StreamSound, Source> streams = new HashMap<>();
+	public static Map<StreamSound, Source> streams;
+	public AudioManager audioManager;
+
+	public AudioStreamer(AudioManager audioManager)
+	{
+		streams = new HashMap<>();
+		this.audioManager = audioManager;
+	}
 
 	/**
 	 * Add a stream to the streaming list
@@ -25,7 +32,7 @@ public class AudioStreamer
 	 * @param sound  the sound to stream
 	 * @param source the source to emmit the stream from
 	 */
-	public static void addStream(StreamSound sound, Source source)
+	public void addStream(StreamSound sound, Source source)
 	{
 		streams.put(sound, source);
 
@@ -48,7 +55,7 @@ public class AudioStreamer
 	 *
 	 * @param sound the stream to remove
 	 */
-	public static void removeStream(StreamSound sound)
+	public void removeStream(StreamSound sound)
 	{
 		streams.remove(sound);
 	}
@@ -59,7 +66,7 @@ public class AudioStreamer
 	 * begin to empty. As well, the method checks for dead streams and
 	 * stops them or restarts them depending on the {@link StreamSound#isLooping} flag.
 	 */
-	public static void updateStreams()
+	public void updateStreams()
 	{
 		for (StreamSound streamSound : streams.keySet())
 		{
@@ -90,7 +97,7 @@ public class AudioStreamer
 				if (streamSound.isLooping())
 					streamData.restart();
 				else
-					AudioManager.stop(streamSound, source);
+					audioManager.stop(streamSound, source);
 			}
 		}
 	}

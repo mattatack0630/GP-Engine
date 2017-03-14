@@ -1,5 +1,6 @@
 package rendering.camera;
 
+import engine.Engine;
 import input.InputManager;
 import org.lwjgl.input.Keyboard;
 import utils.math.linear.vector.Vector3f;
@@ -32,25 +33,27 @@ public abstract class CameraKeyController extends CameraController
 	@Override
 	public void tick()
 	{
-		if (InputManager.isKeyDown(keyMap[0]))
+		InputManager inputManager = Engine.getInputManager();
+
+		if (inputManager.isKeyDown(keyMap[0]))
 			translate(new Vector3f(0, 0, -linearSpeed));
-		if (InputManager.isKeyDown(keyMap[1]))
+		if (inputManager.isKeyDown(keyMap[1]))
 			translate(new Vector3f(0, 0, linearSpeed));
-		if (InputManager.isKeyDown(keyMap[2]))
+		if (inputManager.isKeyDown(keyMap[2]))
 			translate(new Vector3f(0, linearSpeed, 0));
-		if (InputManager.isKeyDown(keyMap[3]))
+		if (inputManager.isKeyDown(keyMap[3]))
 			translate(new Vector3f(0, -linearSpeed, 0));
-		if (InputManager.isKeyDown(keyMap[4]))
+		if (inputManager.isKeyDown(keyMap[4]))
 			translate(new Vector3f(-linearSpeed, 0, 0));
-		if (InputManager.isKeyDown(keyMap[5]))
+		if (inputManager.isKeyDown(keyMap[5]))
 			translate(new Vector3f(linearSpeed, 0, 0));
-		if (InputManager.isKeyDown(keyMap[6]))
+		if (inputManager.isKeyDown(keyMap[6]))
 			rotate(new Vector3f(-rotationalSpeed, 0, 0));
-		if (InputManager.isKeyDown(keyMap[7]))
+		if (inputManager.isKeyDown(keyMap[7]))
 			rotate(new Vector3f(rotationalSpeed, 0, 0));
-		if (InputManager.isKeyDown(keyMap[8]))
+		if (inputManager.isKeyDown(keyMap[8]))
 			rotate(new Vector3f(0, -rotationalSpeed, 0));
-		if (InputManager.isKeyDown(keyMap[9]))
+		if (inputManager.isKeyDown(keyMap[9]))
 			rotate(new Vector3f(0, rotationalSpeed, 0));
 	}
 

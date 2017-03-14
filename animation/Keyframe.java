@@ -14,7 +14,7 @@ import utils.math.linear.vector.Vector3f;
  */
 public class Keyframe
 {
-	// The time this keyframe is set on
+	// The time this keyframe is setElements on
 	public float timeOn;
 	// The bone affected by this keyframe
 	public Bone affectedBone;

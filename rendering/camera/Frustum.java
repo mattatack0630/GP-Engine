@@ -13,10 +13,11 @@ import utils.math.linear.vector.Vector3f;
  */
 public class Frustum
 {
-	Plane f1;
-	Plane f2;
-	Plane f3;
-	Plane f4;
+	private Plane f1;
+	private Plane f2;
+	private Plane f3;
+	private Plane f4;
+	private Vector3f[] nPoints;
 
 	public Frustum()
 	{
@@ -24,6 +25,7 @@ public class Frustum
 		f2 = new Plane(new Vector3f(), 0);
 		f3 = new Plane(new Vector3f(), 0);
 		f4 = new Plane(new Vector3f(), 0);
+		nPoints = new Vector3f[5];
 	}
 
 	public void update(Vector3f pos, Vector3f up, Vector3f right, Vector3f forward, float fov, float farDist)
@@ -33,11 +35,14 @@ public class Frustum
 		float fovb = fov;//fov - 0.1f;//(fov / aspectRatio);
 		Matrix4f rot = new Matrix4f();
 
+		nPoints[0] = pos;
+
 		// UP LEFT
 		rot.setIdentity();
 		rot.rotate(-fova / 2, up);
 		rot.rotate(fovb / 2, right);
 		Vector3f p0 = LinearAlgebra.mult(rot, forward, null);
+		nPoints[1] = new Vector3f(p0);
 		p0.scale(farDist / 2);
 		Vector3f.add(p0, pos, p0);
 
@@ -46,6 +51,7 @@ public class Frustum
 		rot.rotate(fova / 2, up);
 		rot.rotate(fovb / 2, right);
 		Vector3f p1 = LinearAlgebra.mult(rot, forward, null);
+		nPoints[2] = new Vector3f(p1);
 		p1.scale(farDist / 2);
 		Vector3f.add(p1, pos, p1);
 
@@ -54,6 +60,7 @@ public class Frustum
 		rot.rotate(fova / 2, up);
 		rot.rotate(-fovb / 2, right);
 		Vector3f p2 = LinearAlgebra.mult(rot, forward, null);
+		nPoints[3] = new Vector3f(p2);
 		p2.scale(farDist / 2);
 		Vector3f.add(p2, pos, p2);
 
@@ -62,6 +69,7 @@ public class Frustum
 		rot.rotate(-fova / 2, up);
 		rot.rotate(-fovb / 2, right);
 		Vector3f p3 = LinearAlgebra.mult(rot, forward, null);
+		nPoints[4] = new Vector3f(p3);
 		p3.scale(farDist / 2);
 		Vector3f.add(p3, pos, p3);
 
@@ -80,12 +88,18 @@ public class Frustum
 		Vector3f[] points = aabb.points();
 		boolean intersects = false;
 
-		for (Vector3f p : points)
+		if (inView(aabb.getCenter()))
 		{
-			if (inView(p))
+			intersects = true;
+		} else
+		{
+			for (Vector3f p : points)
 			{
-				intersects = true;
-				break;
+				if (inView(p))
+				{
+					intersects = true;
+					break;
+				}
 			}
 		}
 
@@ -99,5 +113,10 @@ public class Frustum
 		boolean b2 = Vector3f.dot(f3.getNormal().normalize(), p) - f3.getHeight() <= 0;
 		boolean b3 = Vector3f.dot(f4.getNormal().normalize(), p) - f4.getHeight() <= 0;
 		return b0 && b1 && b2 && b3;
+	}
+
+	public Vector3f[] getPoints()
+	{
+		return nPoints;
 	}
 }

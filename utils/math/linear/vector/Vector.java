@@ -14,19 +14,27 @@ public class Vector
 	public Vector(float[] elements)
 	{
 		this.elements = new float[elements.length];
-		set(elements);
+		setElements(elements);
 	}
 
 	public Vector(float[] f, int i)
 	{
 		this.elements = new float[i];
-		set(f);
+		setElements(f);
 	}
 
-	public void set(float[] elements)
+	public void setElements(float[] elements)
 	{
 		for (int i = 0; i < this.elements.length; i++)
 			this.elements[i] = elements[i];
+	}
+
+	protected void setElement(int i, float v)
+	{
+		if (i < elements.length)
+		{
+			elements[i] = v;
+		}
 	}
 
 	public Vector negate()
@@ -40,9 +48,9 @@ public class Vector
 	public Vector normalize()
 	{
 		float l = length();
-		if (length() != 0)
+		if (l != 0 && l != 1)
 			scale(1f / l);
-		// avoid div by 0
+		// avoid div by 0 and already normal
 		return this;
 	}
 
@@ -82,6 +90,13 @@ public class Vector
 		return this;
 	}
 
+	public Vector absolute()
+	{
+		Vector.absolute(this, this);
+
+		return this;
+	}
+
 	public float dot(Vector other)
 	{
 		return Vector.dot(this, other);
@@ -115,6 +130,11 @@ public class Vector
 		return i < elements.length ? elements[i] : 0;
 	}
 
+	public int elementsSize()
+	{
+		return elements.length;
+	}
+
 	@Override
 	public String toString()
 	{
@@ -140,6 +160,17 @@ public class Vector
 				e = (Math.abs(elements[i] - v.elements[i]) < SAME_TOLERANCE) && e;
 		}
 		return e;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		int hash = 0;
+
+		for (int i = 0; i < elements.length; i++)
+			hash = hash ^ new Float(elements[i]).hashCode();
+
+		return hash;
 	}
 
 	/**
@@ -195,6 +226,17 @@ public class Vector
 		return dest;
 	}
 
+	public static Vector absolute(Vector left, Vector dest)
+	{
+		dest = dest == null ? new Vector(new float[left.elements.length]) : dest;
+		checkSame(left, dest);
+
+		for (int i = 0; i < left.elements.length; i++)
+			dest.elements[i] = Math.abs(left.elements[i]);
+
+		return dest;
+	}
+
 	public static Vector add(Vector left, Vector right, Vector dest)
 	{
 		Vector v = dest == null ? new Vector(new float[left.elements.length]) : dest;
@@ -237,8 +279,9 @@ public class Vector
 			v.elements[i] = left.elements[i] * scale;
 
 		if (dest != null)
-			dest.set(v.elements);// chaneg to load
+			dest.setElements(v.elements);// chaneg to load
 
 		return v;
 	}
+
 }

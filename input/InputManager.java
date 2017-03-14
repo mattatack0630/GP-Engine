@@ -1,10 +1,14 @@
 package input;
 
+import engine.Engine;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import rendering.DisplayManager;
 import utils.math.linear.vector.Vector2f;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by mjmcc on 10/27/2016.
@@ -14,33 +18,35 @@ public class InputManager
 	public static final int KEY_NONE = -1;
 	public static final int MOUSE_NONE = -2;
 
-	private static ArrayList<Integer> keysDown;
-	private static ArrayList<Integer> keysReleasing;
-	private static ArrayList<Integer> keysBeganPressing;
-	private static int lastKeyPressed;
+	private Map<Integer, Character> keysDown;
+	private Map<Integer, Character> keysReleasing;
+	private Map<Integer, Character> keysBeganPressing;
+	private Map<Integer, Float> keyDownTimeMap;
+	private int lastKeyPressed;
 
-	private static int mouseWheelVal;
-	private static Vector2f mouseCoords;
-	private static ArrayList<Integer> mouseDown;
-	private static ArrayList<Integer> mouseReleasing;
-	private static ArrayList<Integer> mouseBeganPressing;
-	private static int lastMousePressed;
+	private Vector2f mouseCoordsPix;
+	private Vector2f mouseCoordsGL;
+	private ArrayList<Integer> mouseDown;
+	private ArrayList<Integer> mouseReleasing;
+	private ArrayList<Integer> mouseBeganPressing;
 
-	public static void init()
+	public InputManager()
 	{
-		keysDown = new ArrayList<>();
-		keysReleasing = new ArrayList<>();
-		keysBeganPressing = new ArrayList<>();
 		lastKeyPressed = KEY_NONE;
+		keysDown = new HashMap<>();
+		keysReleasing = new HashMap<>();
+		keysBeganPressing = new HashMap<>();
+		keyDownTimeMap = new HashMap<>();
 
+		mouseCoordsGL = new Vector2f();
+		mouseCoordsPix = new Vector2f();
 
 		mouseDown = new ArrayList<>();
 		mouseReleasing = new ArrayList<>();
 		mouseBeganPressing = new ArrayList<>();
-		lastMousePressed = MOUSE_NONE;
 	}
 
-	public static void update()
+	public void update()
 	{
 		// Keyboard Updates
 		keysBeganPressing.clear();
@@ -49,23 +55,27 @@ public class InputManager
 		while (Keyboard.next())
 		{
 			int k = Keyboard.getEventKey();
+			char c = Keyboard.getEventCharacter();
 			boolean state = Keyboard.getEventKeyState();
 			if (state)
 			{
-				keysBeganPressing.add(k);
-				keysDown.add(k);
+				keyDownTimeMap.put(k, Engine.getTime());
+				keysBeganPressing.put(k, c);
+				keysDown.put(k, c);
 				lastKeyPressed = k;
 			} else
 			{
-				keysReleasing.add(k);
-				keysDown.remove(keysDown.indexOf(k));
+				keysReleasing.put(k, c);
+				keysDown.remove(k);
+				keyDownTimeMap.remove(k);
 			}
 		}
 
 		// Mouse Updates
 		mouseReleasing.clear();
 		mouseBeganPressing.clear();
-		mouseCoords = new Vector2f(Mouse.getX(), Mouse.getY());
+		mouseCoordsPix = new Vector2f(Mouse.getX(), Mouse.getY());
+		mouseCoordsGL = DisplayManager.pixelToGlConversion(mouseCoordsPix);
 		while (Mouse.next())
 		{
 			int m = Mouse.getEventButton();
@@ -74,7 +84,6 @@ public class InputManager
 			{
 				mouseBeganPressing.add(m);
 				mouseDown.add(m);
-				lastMousePressed = m;
 			} else
 			{
 				mouseReleasing.add(m);
@@ -86,79 +95,84 @@ public class InputManager
 	}
 
 	// Key Queries
-	public static boolean isKeyDown(int k)
+	public boolean isKeyDown(int k)
 	{
-		return keysDown.contains(k);
+		return keysDown.containsKey(k);
 	}
 
-	public static boolean isKeyClicked(int k)
+	public boolean isKeyClicked(int k)
 	{
-		return keysBeganPressing.contains(k);
+		return keysBeganPressing.containsKey(k);
 	}
 
-	public static boolean isKeyReleased(int k)
+	public boolean isKeyReleased(int k)
 	{
-		return keysReleasing.contains(k);
+		return keysReleasing.containsKey(k);
 	}
 
-	public static int getLastKeyPressed()
+	public int getLastKeyPressed()
 	{
 		return lastKeyPressed;
 	}
 
-	public static int getKeyCount()
+	public int getKeyCount()
 	{
 		return keysDown.size();
 	}
 
-	public static ArrayList<Integer> getKeysDown()
+	public Map<Integer, Character> getKeysDown()
 	{
 		return keysDown;
 	}
 
-	public static ArrayList<Integer> getKeysReleased()
+	public Map<Integer, Character> getKeysReleased()
 	{
 		return keysReleasing;
 	}
 
-	public static ArrayList<Integer> getKeysClicked()
+	public Map<Integer, Character> getKeysClicked()
 	{
 		return keysBeganPressing;
 	}
 
-	// Button Queries
-	public static Vector2f getCursorCoords()
+	public Map<Integer, Float> getKeyDownTimeMap()
 	{
-		return mouseCoords;
+		return keyDownTimeMap;
 	}
 
-	public static boolean isMouseButtonDown(int i)
+	// Button Queries
+	public Vector2f getCursorCoords()
+	{
+		return mouseCoordsPix;
+	}
+
+	public Vector2f getGLCursorCoords()
+	{
+		return mouseCoordsGL;
+	}
+
+	public boolean isMouseButtonDown(int i)
 	{
 		return mouseDown.contains(i);
 	}
 
-	public static boolean isMouseButtonClicked(int i)
+	public boolean isMouseButtonClicked(int i)
 	{
 		return mouseBeganPressing.contains(i);
 	}
 
-	public static ArrayList<Integer> getMouseClicked()
+	public ArrayList<Integer> getMouseClicked()
 	{
 		return mouseBeganPressing;
 	}
 
-	public static ArrayList<Integer> getMouseDown()
+	public ArrayList<Integer> getMouseDown()
 	{
 		return mouseDown;
 	}
 
-	public static ArrayList<Integer> getMouseReleasing()
+	public ArrayList<Integer> getMouseReleasing()
 	{
 		return mouseReleasing;
-	}
-
-	public static char getCharOfKey(int k)
-	{
-		return ' ';
 	}
 }

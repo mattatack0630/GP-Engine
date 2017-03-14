@@ -53,18 +53,6 @@ public class FboObject
 		colorsAttached = 0;
 
 		frameBuffer = createFrameBuffer();
-
-		//colorAttachments[colorsAttached] = new TextureAttachment(createTexture());
-		//colorsAttached++;
-
-		//colorAttachments[colorsAttached] = new TextureAttachment(createTexture());
-		//colorsAttached++;
-		//addAttachments(COLOR_TEXTURE);
-		//resetDrawBuffers();
-		//addAttachments(DEPTH_BUFFER);
-
-		//depthAttachments = new BufferAttachment(createDepthBuffer());
-
 	}
 
 	public FboObject(int width, int height, int attachmentBits)
@@ -133,6 +121,8 @@ public class FboObject
 		int frameBuffer = GL30.glGenFramebuffers();
 		//create the framebuffer
 		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, frameBuffer);
+		//init draw buffer to none
+		GL20.glDrawBuffers(GL11.GL_NONE);
 
 		return frameBuffer;
 	}
@@ -154,9 +144,10 @@ public class FboObject
 
 	protected int createDepthBuffer()
 	{
+		bindFrameBuffer();
 		int depthBuffer = GL30.glGenRenderbuffers();
 		GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, depthBuffer);
-		GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL11.GL_DEPTH_COMPONENT, (int) dimensions.x(), (int) dimensions.y());
+		GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL14.GL_DEPTH_COMPONENT24, (int) dimensions.x(), (int) dimensions.y());
 		GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER, depthBuffer);
 		return depthBuffer;
 	}
@@ -178,7 +169,7 @@ public class FboObject
 		int texture = GL11.glGenTextures();
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
 
-		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL14.GL_DEPTH_COMPONENT16, (int) dimensions.x(), (int) dimensions.y(),
+		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL14.GL_DEPTH_COMPONENT24, (int) dimensions.x(), (int) dimensions.y(),
 				0, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, (ByteBuffer) null);
 
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);

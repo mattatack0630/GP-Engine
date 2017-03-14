@@ -12,12 +12,15 @@ public class MusicPlayer
 {
 	private List<String> trackQueue;
 
+	private AudioManager audioManager;
+
 	private StreamSound currentTrack;
 	private Source currentSource;
 	private float fadeLength;
 
-	public MusicPlayer()
+	public MusicPlayer(AudioManager manager)
 	{
+		this.audioManager = manager;
 		this.currentSource = Source.generateMusicSource(1);
 		this.trackQueue = new ArrayList<>();
 		this.fadeLength = 1f;
@@ -43,7 +46,7 @@ public class MusicPlayer
 		if (currentTrack == null && !trackQueue.isEmpty())
 		{
 			currentTrack = StreamSound.fromWavFile(trackQueue.remove(0));
-			AudioManager.play(currentTrack, currentSource);
+			audioManager.play(currentTrack, currentSource);
 		}
 
 		if (currentTrack != null)
@@ -61,7 +64,7 @@ public class MusicPlayer
 			// When the current source ends playing
 			if (Maths.round(secondsLeft, 4) <= 0.0 && currentSource.lastPlayed() > 0.0)
 			{
-				AudioManager.stop(currentTrack, currentSource);
+				audioManager.stop(currentTrack, currentSource);
 				currentTrack = null;
 			}
 		}

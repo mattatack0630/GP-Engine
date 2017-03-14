@@ -1,71 +1,85 @@
 package models;
 
-import resources.ResourceManager;
+import org.lwjgl.opengl.GL11;
 import resources.TextureResource;
+import utils.math.linear.vector.Vector2f;
+import utils.math.linear.vector.Vector4f;
 
 /**
- * Created by mjmcc on 4/13/2016.
+ * Created by mjmcc on 12/27/2016.
  */
 public class SpriteSheet
 {
-	private int sheetId;
-	private float rowSize;
-	private float colSize;
-	private int rows;
-	private int cols;
+	// Sprite Sheet Texture
+	public TextureResource sheetTexture;
+	private TextureResource normalTexture;
+	// How many horizontal and vertical tiles there are
+	public Vector2f tilesCount;
+	// Each tiles dimensions
+	public Vector2f tileSize;
+	// Amount of tiles
+	public int tilesLength;
 
-	public SpriteSheet(String sheetFile, int rows, int cols)
+	public SpriteSheet(TextureResource sheetTexture, TextureResource normalTexture, Vector2f tilesCount)
 	{
-		this.sheetId = ResourceManager.loadResource(new TextureResource(sheetFile, sheetFile)).getId();
-		this.rows = rows;
-		this.cols = cols;
-		this.rowSize = 1 / (float) rows;
-		this.colSize = 1 / (float) cols;
+		this.sheetTexture = sheetTexture;
+		this.normalTexture = normalTexture;
+		this.tilesCount = tilesCount;
+		this.tileSize = new Vector2f(1.0f / tilesCount.x(), 1.0f / tilesCount.y());
+		this.tilesLength = (int) tilesCount.x() * (int) tilesCount.y();
+
+		setMagFilter(GL11.GL_NEAREST);
 	}
 
-	public float[] getCellCoords(int index)
+	public void setMagFilter(int filter)
 	{
-		float x = (index % rows) * rowSize;
-		float y = (index / rows) * colSize;
-
-		return new float[]{x, y, x + rowSize, y + colSize};
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, sheetTexture.getId());
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, filter);
 	}
 
-	public int[] getIndicesThrough(int start, int finish, boolean verticle)
+	public Vector2f getTileCoord(int index)
 	{
-		int[] indices = new int[Math.abs(start - finish)];
-		if (!verticle)
-		{
-			for (int i = 0; i < indices.length; i++)
-			{
-				indices[i] = start + i;
-			}
-		} else
-		{
-			for (int i = 0; i < indices.length; i++)
-			{
-				indices[i] = ((start + (i % rows)) * rows) + (i / cols);
-			}
-		}
-
-		for (int i : indices)
-			System.out.println("i- " + i);
-
-		return indices;
+		int x = (index % (int) tilesCount.x());
+		int y = (index / (int) tilesCount.x()) % (int) (tilesCount.y());
+		return new Vector2f(x, y);
 	}
 
-	public int getSheetId()
+	public Vector4f getTileMinMax(int index)
 	{
-		return sheetId;
+		Vector2f coord = getTileCoord(index);
+		return getTileMinMax(coord);
 	}
 
-	public float getRowCount()
+	public Vector4f getTileMinMax(Vector2f tileCoord)
 	{
-		return rows;
+		Vector2f min = Vector2f.multElements(tileCoord, tileSize, null);
+		Vector2f max = Vector2f.add(min, tileSize, null);
+		return new Vector4f(min.x(), min.y(), max.x(), max.y());
 	}
 
-	public float getColCount()
+	public int getTilesLength()
 	{
-		return cols;
+		return tilesLength;
 	}
+
+	public Vector2f getRowColCount()
+	{
+		return tilesCount;
+	}
+
+	public int getTextureID()
+	{
+		return sheetTexture.getId();
+	}
+
+	public int getNormalMapID()
+	{
+		return normalTexture.getId();
+	}
+
+	public Vector2f getTileSize()
+	{
+		return tileSize;
+	}
+
 }

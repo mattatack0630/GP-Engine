@@ -3,6 +3,7 @@ package utils.math;
 import org.lwjgl.opengl.Display;
 import physics.collidables.Plane;
 import rendering.DisplayManager;
+import utils.math.linear.vector.Vector;
 import utils.math.linear.vector.Vector2f;
 import utils.math.linear.vector.Vector3f;
 
@@ -13,7 +14,8 @@ public class Maths
 	public static int ScreenSizeX = DisplayManager.WIDTH;
 	public static int ScreenSizeY = DisplayManager.HEIGHT;
 
-	public static Random random = new Random();
+	private static Random random = new Random();
+	private static int uniqueCounter;
 
 	public static float getSign(float num)
 	{
@@ -30,6 +32,15 @@ public class Maths
 	}
 
 	public static float clamp(float n, float min, float max)
+	{
+		if (n < min)
+			n = min;
+		else if (n > max)
+			n = max;
+		return n;
+	}
+
+	public static int clamp(int n, int min, int max)
 	{
 		if (n < min)
 			n = min;
@@ -58,16 +69,74 @@ public class Maths
 		return v * v;
 	}
 
+	public static float max(float... numbers)
+	{
+		float largest = numbers[0];
+
+		for (float n : numbers)
+			if (n > largest)
+				largest = n;
+
+		return largest;
+	}
+
+	public static int max(int... numbers)
+	{
+		int largest = numbers[0];
+
+		for (int n : numbers)
+			if (n > largest)
+				largest = n;
+
+		return largest;
+	}
+
+	public static float min(float... numbers)
+	{
+		float largest = numbers[0];
+
+		for (float n : numbers)
+			if (n < largest)
+				largest = n;
+
+		return largest;
+	}
+
+	public static int min(int... numbers)
+	{
+		int largest = numbers[0];
+
+		for (int n : numbers)
+			if (n < largest)
+				largest = n;
+
+		return largest;
+	}
+
+	/**
+	 * Get the next unique number in a static counter
+	 * variable, this can be useful in situations where you need defiantly
+	 * unique numbers and don't mind that they are in sequence
+	 * <p>
+	 * NOTE - this is not a random number! this method simply
+	 * returns the next in a counter variable
+	 */
+	public static int uniqueInteger()
+	{
+		return (uniqueCounter++);
+	}
+
 	////////////////////////////////////////// To Remove ////////////////////////////////////////////////////////////
 
-	public static Vector3f calculateTangent(Vector3f p1, Vector3f p2, Vector3f p3, Vector2f t1, Vector2f t2, Vector2f t3)
+	public static Vector3f calculateTangent(Vector3f p0, Vector3f p1, Vector3f p2, Vector2f t0, Vector2f t1, Vector2f t2)
 	{
-		Vector3f deltaV1 = Vector3f.sub(p2, p1, null);
-		Vector3f deltaV2 = Vector3f.sub(p3, p1, null);
-		Vector2f deltaT1 = Vector2f.sub(t2, t1, null);
-		Vector2f deltaT2 = Vector2f.sub(t3, t1, null);
+		Vector3f deltaV1 = Vector3f.sub(p1, p0, null);
+		Vector3f deltaV2 = Vector3f.sub(p2, p0, null);
+		Vector2f deltaT1 = Vector2f.sub(t1, t0, null);
+		Vector2f deltaT2 = Vector2f.sub(t2, t0, null);
 
-		float r = 1f / (deltaT1.x() * deltaT2.y() - deltaT1.y() * deltaT2.x());
+		float d = (deltaT1.x() * deltaT2.y() - deltaT1.y() * deltaT2.x());
+		float r = d != 0.0f ? 1f / d : 0.0f;
 
 		Vector3f alpha1 = deltaV1.scale(deltaT2.y());
 		Vector3f alpha2 = deltaV2.scale(deltaT1.y());
@@ -108,4 +177,8 @@ public class Maths
 		return Vector3f.dot(facePlane.normal.normalize(), total) - facePlane.height;
 	}
 
+	public static Vector randomVec(float v0, float v1)
+	{
+		return new Vector3f(random(v0, v1), random(v0, v1), random(v0, v1));
+	}
 }

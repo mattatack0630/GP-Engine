@@ -5,7 +5,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import rendering.fbo.FboObject;
-import resources.ResourceManager;
+import utils.VaoLoader;
 import utils.VaoObject;
 
 /**
@@ -13,7 +13,8 @@ import utils.VaoObject;
  */
 public abstract class PostProcessingEffect
 {
-	public static final VaoObject SCREEN_VAO = ResourceManager.getScreenQuad();
+	private static final float[] POSITIONS = new float[]{-1f, 1f, 0, -1f, -1f, 0, 1f, 1f, 0, 1f, -1f, 0};
+	private static final VaoObject SCREEN_VAO = VaoLoader.loadModel(3, POSITIONS);
 	protected FboObject outputFbo;
 
 	public PostProcessingEffect()

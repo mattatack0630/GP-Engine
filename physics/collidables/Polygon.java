@@ -90,7 +90,7 @@ public class Polygon extends Collidable
 		Vector3f.add(pos, COM, position);
 		rotation = new Vector3f(rot);
 
-		Matrix4f translate = MatrixGenerator.genTransformMatrix(pos, new Euler(rot), new Vector3f(1, 1, 1));
+		Matrix4f translate = MatrixGenerator.genTransformMatrix(pos, new Euler(rot), new Vector3f(1, 1, 1), null);
 		//Maths.createTransformationMatrix(pos, rot, new Vector3f(1,1,1));
 		translate.translate(COM);
 		translate.scale(scale);
@@ -99,7 +99,7 @@ public class Polygon extends Collidable
 		for (PolyVertex vert : polyVerts)
 		{
 			vert.updatedPos = LinearAlgebra.mult(translate, vert.originalPos, null);
-			// Reset min/max of AABB
+			// Reset min/max of AABBmm
 			proximityBox.min.setX((vert.updatedPos.x() < proximityBox.min.x()) ? vert.updatedPos.x() : proximityBox.min.x());
 			proximityBox.min.setY((vert.updatedPos.y() < proximityBox.min.y()) ? vert.updatedPos.y() : proximityBox.min.y());
 			proximityBox.min.setZ((vert.updatedPos.z() < proximityBox.min.z()) ? vert.updatedPos.z() : proximityBox.min.z());

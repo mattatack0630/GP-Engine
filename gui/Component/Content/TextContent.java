@@ -41,6 +41,7 @@ public class TextContent extends Content
 	@Override
 	public void update()
 	{
+		text.update();
 		size = text.getSize();
 	}
 

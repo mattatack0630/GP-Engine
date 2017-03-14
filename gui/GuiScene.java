@@ -1,12 +1,10 @@
 package gui;
 
-import gui.CSS.Style;
 import gui.Component.Component;
 import gui.Component.Panel.Panel;
 import gui.Transition.Transition;
-import gui.XML.XMLParser;
+import gui.XML.SXMLParser;
 import rendering.renderers.MasterRenderer;
-import utils.ExtraUtils;
 import utils.math.linear.vector.Vector2f;
 
 import java.util.ArrayList;
@@ -36,7 +34,7 @@ public class GuiScene
 	public GuiScene(String srcXml)
 	{
 		this();
-		directChildren.addAll(XMLParser.parseXMLFromFile(srcXml).getDirectChildren());
+		directChildren.addAll(SXMLParser.parse("res/gui_files/" + srcXml).getDirectChildren());
 		build();
 		show();
 	}
@@ -61,7 +59,7 @@ public class GuiScene
 	/**
 	 * Set the position and of this scene
 	 *
-	 * @param p the new position to set the scene to
+	 * @param p the new position to setElements the scene to
 	 */
 	public void setPosition(Vector2f p)
 	{
@@ -148,25 +146,6 @@ public class GuiScene
 
 		for (Panel p : directChildren)
 			p.render(renderer);
-	}
-
-	/**
-	 * Apply CSS styles to the scene. Not working right now
-	 */
-	public void applyCSS(ArrayList<Style> sheet)
-	{
-		ArrayList<Component> components = getAllChildren();
-
-		for (Component c : components)
-		{
-			Style overallStyle = new Style("");
-			for (Style style : sheet)
-			{
-				if (c.identifier.isTypeOf(style.applyToIdentifier))
-				{
-				}
-			}
-		}
 	}
 
 	/**
@@ -269,7 +248,7 @@ public class GuiScene
 	public void attachNewSource(String srcPath)
 	{
 		directChildren.clear();
-		directChildren.addAll(XMLParser.parseXML(ExtraUtils.getFileAsString(srcPath)).directChildren);
+		directChildren.addAll(SXMLParser.parse(srcPath).directChildren);
 		build();
 	}
 

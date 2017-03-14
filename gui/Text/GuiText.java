@@ -1,8 +1,9 @@
 package gui.Text;
 
+import engine.Engine;
 import rendering.RenderData;
 import rendering.renderers.MasterRenderer;
-import resources.ResourceManager;
+import resources.FontResource;
 import utils.VaoObject;
 import utils.math.linear.rotation.Euler;
 import utils.math.linear.vector.Vector2f;
@@ -10,10 +11,10 @@ import utils.math.linear.vector.Vector3f;
 
 /**
  * GuiText Class
- *
+ * <p>
  * The GuiText is the interface that is be used to render
  * text to the screen. Use attributes to affect how the text is rendered
- * */
+ */
 public class GuiText
 {
 	private Font font;
@@ -26,7 +27,20 @@ public class GuiText
 
 	public GuiText(String text, String fontName, Vector2f pos, TextAttributes attribs)
 	{
-		this.font = ResourceManager.getFont(fontName).getFont();
+		FontResource fontResource = Engine.getResourceManager().getResource(fontName);
+		this.font = fontResource.getFont();
+		this.text = text;
+		this.attribs = attribs;
+		this.transform = new RenderData(new Vector3f(pos.x(), pos.y(), 0));
+		this.mesh = TextMeshGenerator.generateTextVao(this.text, this.attribs, this.font, TextMeshGenerator.NEW_VAO);
+		this.size = new Vector2f(mesh.maxPoint.x(), mesh.maxPoint.y());
+		this.opacity = 1.0f;
+	}
+
+	public GuiText(String text, Vector2f pos, TextAttributes attribs)
+	{
+		FontResource fontResource = Engine.getResourceManager().getResource(attribs.getFont());
+		this.font = fontResource.getFont();
 		this.text = text;
 		this.attribs = attribs;
 		this.transform = new RenderData(new Vector3f(pos.x(), pos.y(), 0));
@@ -37,25 +51,26 @@ public class GuiText
 
 	/**
 	 * Blank attributes return a black text with no outline or shadow
-	 * */
+	 */
 	public GuiText(String text, String fontName, Vector2f pos)
 	{
 		this(text, fontName, pos, new TextAttributes());
 	}
 
 	/**
-	 *  Must be called to update the mesh when the text is changed
-	 *  VAO is reloaded with a new mesh every time update is called
-	 * */
+	 * Must be called to update the mesh when the text is changed
+	 * VAO is reloaded with a new mesh every time update is called
+	 */
 	public void update()
 	{
+		setFont(attribs.getFont());
 		TextMeshGenerator.generateTextVao(this.text, this.attribs, this.font, this.mesh);
 		size = new Vector2f(mesh.maxPoint.x(), mesh.maxPoint.y());
 	}
 
 	/**
 	 * Render called once per frame by the GuiManager
- 	 * */
+	 */
 	public void render(MasterRenderer renderer)
 	{
 		renderer.processGuiText(this);
@@ -63,7 +78,7 @@ public class GuiText
 
 	public void setText(String text)
 	{
-		if(text.compareTo(this.text) == 0)
+		if (text.compareTo(this.text) == 0)
 			return;
 
 		this.text = text;
@@ -114,19 +129,26 @@ public class GuiText
 
 	public void setFont(String font)
 	{
-		this.font = ResourceManager.getFont(font).getFont();
+		String thisFont = this.font.getName().toLowerCase();
+		String otherFont = font.toLowerCase();
+
+		if (!thisFont.equals(otherFont))
+		{
+			FontResource fontResource = Engine.getResourceManager().getResource(font);
+			this.font = fontResource.getFont();
+		}
 	}
 
 	public float getWidth()
 	{
-		if(size == null)
+		if (size == null)
 			return 0;
 		return size.x() * attribs.getFontSize();
 	}
 
 	public float getHeight()
 	{
-		if(size == null)
+		if (size == null)
 			return 0;
 		return size.y() * attribs.getFontSize();
 	}

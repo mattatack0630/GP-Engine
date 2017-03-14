@@ -16,7 +16,7 @@ public class Color
 	public static final Color RED = new Color(1,0,0,.5f);
 	public static final Color YELLOW = new Color(1,1,0,.5f);
 	public static final Color GREEN = new Color(0,1,0,.5f);
-	public static final Color BLACK = new Color(0,0,0,.5f);
+	public static final Color BLACK = new Color(0, 0, 0, 1f);
 	public static final Color BLUE = new Color(0,0,1,.5f);
 	public static final Color ORANGE = new Color(1,.6f,.1f,.9f);
 	public static final Color PURPLE = new Color(.5f,0,.5f,.5f);
@@ -102,6 +102,19 @@ public class Color
 		this.g = g;
 		this.b = b;
 		this.a = a;
+	}
+
+	public Color(Vector3f colorVec, float a)
+	{
+		this.r = colorVec.x();
+		this.g = colorVec.y();
+		this.b = colorVec.z();
+		this.a = a;
+	}
+
+	public Color(Vector4f colorVec)
+	{
+		this(colorVec.x(), colorVec.y(), colorVec.z(), colorVec.w());
 	}
 
 	public Color()

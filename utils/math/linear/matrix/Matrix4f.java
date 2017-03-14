@@ -93,6 +93,11 @@ public class Matrix4f extends Matrix
 	/**
 	 * Static Methods
 	 **/
+	public static Matrix4f newIdentity()
+	{
+		return new Matrix4f().setIdentity();
+	}
+
 	public static Vector[] decompose(Matrix4f src)
 	{
 
@@ -237,7 +242,6 @@ public class Matrix4f extends Matrix
 			return dest;
 		} else
 		{
-			System.out.println(src.determinant());
 			return null;
 		}
 	}

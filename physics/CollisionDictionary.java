@@ -44,7 +44,7 @@ public class CollisionDictionary
 		return null;
 	}
 
-	/*AABB Methods*/
+	/*AABBmm Methods*/
 	public static CollisionData doesCollide(AABB a, AABB b)
 	{
 		boolean intersects = (a.min.x() <= b.max.x() && a.max.x() >= b.min.x()) &&
@@ -160,7 +160,7 @@ public class CollisionDictionary
 	/*Polygon Methods*/
 	public static CollisionData doesCollide(Polygon p1, Polygon p2)
 	{
-		// Do AABB check first
+		// Do AABBmm check first
 		CollisionData inProximity = doesCollide(p1.proximityBox, p2.proximityBox);
 		if(!inProximity.doesCollide)
 			return inProximity;

@@ -10,7 +10,7 @@ public class VaoLoader
 		VaoObject vaoObject = new VaoObject();
 		vaoObject.bind();
 
-		vaoObject.addVboAttrib(0, array, dataSize);
+		vaoObject.addAttribute(0, array, dataSize);
 
 		vaoObject.vertexCount = array.length / 3;
 
@@ -24,8 +24,8 @@ public class VaoLoader
 		VaoObject vaoObject = new VaoObject();
 		vaoObject.bind();
 
-		vaoObject.addVboAttrib(VaoObject.POSITIONS, positions, 2);
-		vaoObject.addVboAttrib(VaoObject.TEXTURE_COORDS, textureCoords, 2);
+		vaoObject.addAttribute(VaoObject.POSITIONS, positions, 2);
+		vaoObject.addAttribute(VaoObject.TEXTURE_COORDS, textureCoords, 2);
 
 		vaoObject.unbind();
 		return vaoObject;
@@ -36,16 +36,16 @@ public class VaoLoader
 									  int[] indicies)
 	{
 		VaoObject vaoObject = new VaoObject();
+
 		vaoObject.bind();
-
 		vaoObject.setIndexArray(indicies);
-		vaoObject.addVboAttrib(VaoObject.POSITIONS, positions, 3);
-		vaoObject.addVboAttrib(VaoObject.TEXTURE_COORDS, textureCoords, 2);
-		vaoObject.addVboAttrib(VaoObject.NORMALS, normals, 3);
-		vaoObject.addVboAttrib(VaoObject.TANGENTS, tangents, 3);
-		vaoObject.vertexCount = indicies.length;
-
+		vaoObject.addAttribute(VaoObject.POSITIONS, positions, 3);
+		vaoObject.addAttribute(VaoObject.TEXTURE_COORDS, textureCoords, 2);
+		vaoObject.addAttribute(VaoObject.NORMALS, normals, 3);
+		vaoObject.addAttribute(VaoObject.TANGENTS, tangents, 3);
+		vaoObject.setVertexCount(indicies.length);
 		vaoObject.unbind();
+
 		return vaoObject;
 	}
 
@@ -57,12 +57,12 @@ public class VaoLoader
 		vaoObject.bind();
 
 		vaoObject.setIndexArray(indicies);
-		vaoObject.addVboAttrib(VaoObject.POSITIONS, positions, 3);
-		vaoObject.addVboAttrib(VaoObject.TEXTURE_COORDS, textureCoords, 2);
-		vaoObject.addVboAttrib(VaoObject.NORMALS, normals, 3);
-		vaoObject.addVboAttrib(VaoObject.TANGENTS, tangents, 3);
-		vaoObject.addVboAttrib(VaoObject.BONE_INDEX, boneIndices, 4);
-		vaoObject.addVboAttrib(VaoObject.BONE_WEIGHT, boneWeights, 4);
+		vaoObject.addAttribute(VaoObject.POSITIONS, positions, 3);
+		vaoObject.addAttribute(VaoObject.TEXTURE_COORDS, textureCoords, 2);
+		vaoObject.addAttribute(VaoObject.NORMALS, normals, 3);
+		vaoObject.addAttribute(VaoObject.TANGENTS, tangents, 3);
+		vaoObject.addAttribute(VaoObject.BONE_INDEX, boneIndices, 4);
+		vaoObject.addAttribute(VaoObject.BONE_WEIGHT, boneWeights, 4);
 
 		vaoObject.unbind();
 		return vaoObject;

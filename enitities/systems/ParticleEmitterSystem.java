@@ -13,29 +13,19 @@ import java.util.Map;
  */
 public class ParticleEmitterSystem extends EntitySystem
 {
-	Map<Entity, ParticleEmitterComponent> particleComponents = new HashMap<>();
+	private Map<Entity, ParticleEmitterComponent> component;
 
-	@Override
-	public void addEntity(Entity e)
+	public ParticleEmitterSystem()
 	{
-		ParticleEmitterComponent particleComponent = e.getComponent(ParticleEmitterComponent.class);
-
-		if (particleComponent != null)
-			particleComponents.put(e, particleComponent);
-	}
-
-	@Override
-	public void removeEntity(Entity e)
-	{
-		particleComponents.remove(e);
+		component = new HashMap<>();
 	}
 
 	@Override
 	public void tick()
 	{
-		for (Entity e : particleComponents.keySet())
+		for (Entity e : component.keySet())
 		{
-			ParticleEmitterComponent particleComponent = particleComponents.get(e);
+			ParticleEmitterComponent particleComponent = component.get(e);
 			ParticleSystem system = particleComponent.getSystem();
 			system.setPosition(e.getPosition());
 			system.update();
@@ -45,6 +35,11 @@ public class ParticleEmitterSystem extends EntitySystem
 	@Override
 	public void render(MasterRenderer renderer)
 	{
+	}
 
+	@Override
+	public void setupNeededComponents()
+	{
+		super.addNeededComponent(ParticleEmitterComponent.class, component);
 	}
 }

@@ -1,6 +1,5 @@
 package input.picker;
 
-import rendering.Color;
 import utils.math.linear.vector.Vector2f;
 
 /**
@@ -11,7 +10,7 @@ import utils.math.linear.vector.Vector2f;
  */
 public class PickingData
 {
-	private static int idCounter = 500;
+	private static float idCounter = 0;
 
 	// Unique color id
 	private Vector2f cid;
@@ -24,9 +23,9 @@ public class PickingData
 	// Random Color id
 	public PickingData()
 	{
-		this(Color.random().rg());
-		//this(new Vector2f((idCounter % 255) / 255f, (idCounter / 255) / 255f));
-		idCounter++;
+		//this(new Color());
+		this(new Vector2f(idCounter % 1.0f, ((int) (idCounter / 1.0f) * (1.0f / 255.0f))));
+		idCounter += (1.0 / 255.0f);
 	}
 
 	public Vector2f getCid()

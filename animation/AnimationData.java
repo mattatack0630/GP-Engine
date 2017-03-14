@@ -17,7 +17,7 @@ public class AnimationData
 	private List<Bone> bones;
 
 	/**
-	 * Initialize a animation data with a set of animations and bones
+	 * Initialize a animation data with a setElements of animations and bones
 	 */
 	public AnimationData(HashMap<String, ModelAnimation> animations, List<Bone> bones)
 	{

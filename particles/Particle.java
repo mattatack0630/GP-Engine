@@ -1,5 +1,7 @@
 package particles;
 
+import models.SpriteSequence;
+import models.SpriteSheet;
 import rendering.renderers.MasterRenderer;
 import utils.math.Maths;
 import utils.math.linear.rotation.Euler;
@@ -11,7 +13,7 @@ import utils.math.linear.vector.Vector3f;
 public class Particle implements Comparable
 {
 	private ParticleRenderData renderData;
-	private SpriteSheet spriteSheet;
+	private SpriteSequence spriteSequence;
 
 	private float lifeTime;
 	private float lifeSpan;
@@ -22,11 +24,11 @@ public class Particle implements Comparable
 
 	private float cameraDist;
 
-	public Particle(float lifeSpan, SpriteSheet spriteSheet, Vector3f position, Vector3f rotation, Vector3f scale)
+	public Particle(float lifeSpan, SpriteSequence spriteSequence, Vector3f position, Vector3f rotation, Vector3f scale)
 	{
 		this.lifeTime = 0.0001f;
 		this.lifeSpan = lifeSpan;
-		this.spriteSheet = spriteSheet;
+		this.spriteSequence = spriteSequence;
 		this.position = new PhysicsValue(position);
 		this.rotation = new PhysicsValue(rotation);
 		this.scale = new PhysicsValue(scale);
@@ -43,17 +45,16 @@ public class Particle implements Comparable
 			position.update();
 			rotation.update();
 
+			int tileCount = spriteSequence.getTileCount() - 1;
 			float nlife = (lifeTime / lifeSpan);
-			float ntile = (lifeSpan / spriteSheet.getTilesLength());
-
-			int currTile = Math.min((int) (nlife * spriteSheet.getTilesLength()), spriteSheet.getTilesLength());
-			int postTile = Math.min((currTile + 1), spriteSheet.getTilesLength());
-
+			float ntile = (lifeSpan / tileCount);
+			int currTile = Maths.clamp((int) (nlife * tileCount), 0, tileCount);
+			int postTile = Maths.clamp((currTile + 1), 0, tileCount);
 			float progress = Maths.map(lifeTime, currTile * ntile, postTile * ntile, 0.0f, 1.0f);
 
+			renderData.setCurrStage(spriteSequence.getTileMinMax(currTile));
+			renderData.setPostStage(spriteSequence.getTileMinMax(postTile));
 			renderData.setStageProgression(progress);
-			renderData.setCurrStage(spriteSheet.getTileMinMax(currTile));
-			renderData.setPostStage(spriteSheet.getTileMinMax(postTile));
 
 			renderData.setScale(scale.getStaticVal());
 			renderData.setPosition(position.getStaticVal());
@@ -85,7 +86,7 @@ public class Particle implements Comparable
 
 	public SpriteSheet getParticleTexture()
 	{
-		return spriteSheet;
+		return spriteSequence.getSheet();
 	}
 
 	public ParticleRenderData getRenderData()
@@ -109,7 +110,7 @@ public class Particle implements Comparable
 
 		copy.lifeSpan = this.lifeSpan;
 		copy.lifeTime = this.lifeTime;
-		copy.spriteSheet = this.spriteSheet;
+		copy.spriteSequence = this.spriteSequence;
 		copy.renderData = this.renderData.copy();
 		copy.position = new PhysicsValue(this.position);
 		copy.rotation = new PhysicsValue(this.rotation);

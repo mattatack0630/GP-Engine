@@ -1,13 +1,12 @@
 package rendering.renderers;
 
+import models.SpriteSheet;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import particles.ParticleRenderData;
-import particles.SpriteSheet;
 import rendering.camera.Camera;
-import resources.ResourceManager;
 import shaders.ParticleShader;
 import utils.VaoLoader;
 import utils.VaoObject;
@@ -22,20 +21,19 @@ import java.util.Map;
 
 public class ParticleRenderer
 {
-	private ParticleShader shader = new ParticleShader();
+	private static final float[] POSITIONS = new float[]{-.5f, .5f, 0, -.5f, -.5f, 0, .5f, .5f, 0, .5f, -.5f, 0};
+	private static final VaoObject QUAD = VaoLoader.loadModel(3, POSITIONS);
 
-	private VaoObject particleVao;
+	private ParticleShader shader = new ParticleShader();
 
 	public ParticleRenderer()
 	{
-		float[] quadPositions = new float[]{-.5f, .5f, 0, -.5f, -.5f, 0, .5f, .5f, 0, .5f, -.5f, 0};
-		particleVao = VaoLoader.loadModel(3, quadPositions);
 	}
 
 	public void prepareRender()
 	{
 		shader.start();
-		GL30.glBindVertexArray(ResourceManager.getGuiQuad().vaoId);
+		GL30.glBindVertexArray(QUAD.getId());
 		GL20.glEnableVertexAttribArray(0);
 		GL20.glEnableVertexAttribArray(1);
 		GL11.glEnable(GL11.GL_BLEND);

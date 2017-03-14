@@ -24,7 +24,7 @@ public class MoveTransition extends Transition
 
 	/**
 	 * Reset the move to position
-	 * @param newPosition the Vector to set the newPosition to
+	 * @param newPosition the Vector to setElements the newPosition to
 	 * */
 	public void setToNewPosition(Vector2f newPosition)
 	{

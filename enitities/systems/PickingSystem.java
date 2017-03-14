@@ -1,9 +1,9 @@
 package enitities.systems;
 
+import engine.Engine;
 import enitities.Entity;
 import enitities.components.PickingComponent;
 import enitities.components.RenderComponent;
-import input.picker.PickingManager;
 import rendering.renderers.MasterRenderer;
 
 import java.util.HashMap;
@@ -14,27 +14,13 @@ import java.util.Map;
  */
 public class PickingSystem extends EntitySystem
 {
-	Map<Entity, PickingComponent> pickingComponents = new HashMap<>();
-	Map<Entity, RenderComponent> renderComponents = new HashMap<>();
+	private Map<Entity, PickingComponent> pickingComponents;
+	private Map<Entity, RenderComponent> renderComponents;
 
-	@Override
-	public void addEntity(Entity e)
+	public PickingSystem()
 	{
-		PickingComponent pickingComponent = e.getComponent(PickingComponent.class);
-		RenderComponent renderComponent = e.getComponent(RenderComponent.class);
-
-		if (pickingComponent != null && renderComponent != null)
-		{
-			pickingComponents.put(e, pickingComponent);
-			renderComponents.put(e, renderComponent);
-		}
-	}
-
-	@Override
-	public void removeEntity(Entity e)
-	{
-		pickingComponents.remove(e);
-		renderComponents.remove(e);
+		pickingComponents = new HashMap<>();
+		renderComponents = new HashMap<>();
 	}
 
 	@Override
@@ -46,7 +32,7 @@ public class PickingSystem extends EntitySystem
 			RenderComponent renderComponent = renderComponents.get(e);
 
 			pickingComponent.setPicked(false);
-			PickingManager.processPickingMesh(pickingComponent, renderComponent.getRenderData());
+			Engine.getPickingManager().processPickingMesh(pickingComponent, renderComponent.getRenderData());
 		}
 	}
 
@@ -54,5 +40,12 @@ public class PickingSystem extends EntitySystem
 	public void render(MasterRenderer renderer)
 	{
 
+	}
+
+	@Override
+	public void setupNeededComponents()
+	{
+		super.addNeededComponent(PickingComponent.class, pickingComponents);
+		super.addNeededComponent(RenderComponent.class, renderComponents);
 	}
 }

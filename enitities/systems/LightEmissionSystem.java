@@ -13,29 +13,19 @@ import java.util.Map;
  */
 public class LightEmissionSystem extends EntitySystem
 {
-	Map<Entity, LightEmitterComponent> lightComponents = new HashMap<>();
+	private Map<Entity, LightEmitterComponent> components;
 
-	@Override
-	public void addEntity(Entity e)
+	public LightEmissionSystem()
 	{
-		LightEmitterComponent lightEmitterComponent = e.getComponent(LightEmitterComponent.class);
-
-		if (lightEmitterComponent != null)
-			lightComponents.put(e, lightEmitterComponent);
-	}
-
-	@Override
-	public void removeEntity(Entity e)
-	{
-		lightComponents.remove(e);
+		components = new HashMap<>();
 	}
 
 	@Override
 	public void tick()
 	{
-		for (Entity e : lightComponents.keySet())
+		for (Entity e : components.keySet())
 		{
-			LightEmitterComponent lightEmitterComponent = lightComponents.get(e);
+			LightEmitterComponent lightEmitterComponent = components.get(e);
 			Light light = lightEmitterComponent.getLight();
 			light.setPosition(e.getPosition());
 		}
@@ -44,11 +34,17 @@ public class LightEmissionSystem extends EntitySystem
 	@Override
 	public void render(MasterRenderer renderer)
 	{
-		for (Entity e : lightComponents.keySet())
+		for (Entity e : components.keySet())
 		{
-			LightEmitterComponent lightEmitterComponent = lightComponents.get(e);
+			LightEmitterComponent lightEmitterComponent = components.get(e);
 			Light light = lightEmitterComponent.getLight();
 			renderer.processLightSource(light);
 		}
+	}
+
+	@Override
+	public void setupNeededComponents()
+	{
+		super.addNeededComponent(LightEmitterComponent.class, components);
 	}
 }

@@ -21,10 +21,10 @@ public class FontResource extends Resource
 	}
 
 	@Override
-	public void load()
+	public void load(ResourceManager resManager)
 	{
 		font = new Font(name,
-				ResourceManager.loadResource(new TextureResource(name + "_fontsheet", FONT_SHEET_FOLDER + location)).getId(),
+				resManager.loadResource(new TextureResource(name + "_fontsheet", FONT_SHEET_FOLDER + location)).getId(),
 				FontLoader.loadFontData(FONT_FILE_FOLDER + location + FONT_EXTENSION),
 				FontLoader.sheetWidth, FontLoader.sheetHeight, 8, 10);
 	}

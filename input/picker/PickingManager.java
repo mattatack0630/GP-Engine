@@ -1,15 +1,11 @@
 package input.picker;
 
-import engine.Engine;
 import gui.GuiTexture;
-import input.InputManager;
 import input.MouseRay;
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import rendering.RenderData;
 import rendering.camera.Camera;
 import rendering.fbo.FboObject;
-import utils.math.Maths;
 import utils.math.linear.vector.Vector2f;
 import utils.math.linear.vector.Vector3f;
 
@@ -29,7 +25,7 @@ public class PickingManager
 	private static Vector3f pickingPosition;
 	private static MouseRay pickingRay;
 
-	public static void init()
+	public PickingManager()
 	{
 		pboColorDownloader = new PBODownloader(GL11.GL_RGBA, 1, 1);
 		pickableList = new ArrayList<>();
@@ -39,13 +35,13 @@ public class PickingManager
 		pickingRay = new MouseRay();
 	}
 
-	public static void processPickingMesh(Pickable pickingObject, RenderData renderData)
+	public void processPickingMesh(Pickable pickingObject, RenderData renderData)
 	{
 		renderData.setPickingId(pickingObject.getMesh().getCid());
 		pickableList.add(pickingObject);
 	}
 
-	public static void doPickingCheck(FboObject pickingFbo, Vector2f coords, Camera camera)
+	public void doPickingCheck(FboObject pickingFbo, Vector2f coords, Camera camera)
 	{
 		pickingFbo.bindFrameBuffer();
 
@@ -57,19 +53,19 @@ public class PickingManager
 		currPicked.onPick();
 
 		// Get mouse positions
-		pickingPosition = (currPicked == Pickable.NONE) ? pickingRay.getRayScaled(camera.far) :
+		pickingPosition = (currPicked == Pickable.NONE) ? pickingRay.getRayScaled(camera.getFarPlane()) :
 				calculateMousePosition(camera, pboColorDownloader.getResults());
 
 		// Debug render texture
 		GuiTexture t = new GuiTexture(pickingFbo.getColorAttachment(0), new Vector2f(), new Vector2f(2, 2));
-		if (InputManager.isKeyDown(Keyboard.KEY_F))
-			Engine.getRenderer().processGuiTexture(t);
+		//if (InputManager.isKeyDown(Keyboard.KEY_F))
+		//	Engine.getRenderer().processGuiTexture(t);
 
 		pickingFbo.unbindFrameBuffer();
 		pickableList.clear();
 	}
 
-	private static Vector3f calculateMousePosition(Camera camera, byte[] color)
+	private Vector3f calculateMousePosition(Camera camera, byte[] color)
 	{
 		// Calculate mouses ray
 		pickingRay.calculateRay(camera);
@@ -87,12 +83,10 @@ public class PickingManager
 		return v;
 	}
 
-	public static Pickable getPickableFromCid(byte[] color)
+	public Pickable getPickableFromCid(byte[] color)
 	{
 		// color from the byte
-		Vector2f c = new Vector2f(
-				Maths.round((color[0] & 0xFF) / 255f, 2),
-				Maths.round((color[1] & 0xFF) / 255f, 2));
+		Vector2f c = new Vector2f((color[0] & 0xFF) / 255.0f, (color[1] & 0xFF) / 255.0f);
 
 		// Compare to the hundreds place
 		for (Pickable pickable : pickableList)
@@ -101,7 +95,7 @@ public class PickingManager
 			Vector2f v = mesh.getCid();
 
 			// Change to a color based on index system
-			if (Math.abs(c.x() - v.x()) < 0.01 && Math.abs(c.y() - v.y()) < 0.01)
+			if (Math.abs(c.x() - v.x()) < (1.0f / 512.0f) && Math.abs(c.y() - v.y()) < (1.0f / 512.0f))
 				return pickable;
 		}
 
@@ -109,17 +103,17 @@ public class PickingManager
 		return Pickable.NONE;
 	}
 
-	public static Vector3f getPickedPosition()
+	public Vector3f getPickedPosition()
 	{
 		return pickingPosition;
 	}
 
-	public static Pickable getPicked()
+	public Pickable getPicked()
 	{
 		return currPicked;
 	}
 
-	public static void cleanUp()
+	public void cleanUp()
 	{
 		pboColorDownloader.cleanUp();
 	}

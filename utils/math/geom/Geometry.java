@@ -26,10 +26,11 @@ public class Geometry
 		return (Vector3f.dot(p0.getNormal(), point) - p0.getHeight());
 	}
 
-	public static Vector3f pointOn(AABB aabb, Vector3f point)
+	public static Vector3f pointOn(AABBmm aabb, Vector3f point)
 	{
 		Vector3f max = aabb.getMax();
 		Vector3f min = aabb.getMin();
+		Vector3f center = aabb.getCenter();
 
 		Vector3f[] testPoints = new Vector3f[6];
 		testPoints[0] = new Vector3f(point.x(), point.y(), min.z());
@@ -49,6 +50,17 @@ public class Geometry
 			{
 				leastVec = tp;
 				leastDist = dist;
+			}
+
+			if (dist == leastDist)
+			{
+				float d0 = Vector3f.sub(leastVec, center, null).lengthSquared();
+				float d1 = Vector3f.sub(tp, center, null).lengthSquared();
+				if (d1 > d0)
+				{
+					leastVec = tp;
+					leastDist = dist;
+				}
 			}
 		}
 
@@ -151,38 +163,3 @@ public class Geometry
 		return Vector3f.add(subjectEdge.v0, vec, null);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-Engine.tick();
-while(!InputManager.isKeyClicked(Keyboard.KEY_K) && !InputManager.isKeyDown(Keyboard.KEY_L))
-{
-	newSubject.tempRender();
-	clippingPoly.tempRender();
-
-	Gizmos3D.setGizmosColor(Color.RED);
-	if(newEdge != null) Gizmos3D.drawLine(newEdge.v0, newEdge.v1, .45f);
-
-	Gizmos3D.setGizmosColor(Color.BLUE);
-	Gizmos3D.drawLine(subjectEdge.v0, subjectEdge.v1, .25f);
-
-	Gizmos3D.setGizmosColor(Color.GREEN);
-	Gizmos3D.drawPlane(clippingPlane.getNormal(), clippingPlane.getHeight(), 1);
-
-	Gizmos3D.setGizmosColor(Color.PINK);
-	Gizmos3D.drawLine(new Vector3f(), new Vector3f(clippingPlane.getNormal()).scale(4), .1f);
-
-	Engine.tick();
-	Engine.render();
-}
-*/

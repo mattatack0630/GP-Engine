@@ -9,7 +9,7 @@ import utils.math.linear.vector.Vector2f;
  * Created by Matthew McCloskey on 10/4/2016.
  * A template to place inside of components
  */
-public class Content extends InteractiveBase
+public abstract class Content extends InteractiveBase
 {
 	public Component parent;
 	public Vector2f position;

@@ -3,7 +3,6 @@ package physics.collidables;
 import rendering.Color;
 import rendering.RenderData;
 import rendering.renderers.MasterRenderer;
-import resources.ResourceManager;
 import utils.math.linear.vector.Vector3f;
 
 /**
@@ -18,8 +17,6 @@ public class Sphere extends Collidable
 		super(Collidable.SPHERE);
 		this.pos = pos;
 		this.radius = radius;
-
-		model = ResourceManager.getStaticModel("isoSphereModel").getModel();
 		data = new RenderData(new Vector3f());
 		data.tempColor = Color.GREEN;
 		data.tempColor = new Color((float)Math.random(), (float)Math.random(), (float) Math.random(), .5f);
