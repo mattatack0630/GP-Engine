@@ -17,11 +17,13 @@ public abstract class Resource
 		this.isLoaded = false;
 	}
 
+	public abstract void preloadOnDaemon();
+
 	public abstract void load(ResourceManager resManager);
 
-	public abstract void setId();
+	public abstract void unload();
 
-	public abstract void cleanUp();
+	public abstract void setId();
 
 	public int getId()
 	{

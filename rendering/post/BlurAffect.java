@@ -1,6 +1,7 @@
 package rendering.post;
 
 import org.lwjgl.opengl.Display;
+import rendering.fbo.ColorTextureAttachment;
 import rendering.fbo.FboObject;
 
 /**
@@ -8,7 +9,7 @@ import rendering.fbo.FboObject;
  */
 public class BlurAffect extends PostProcessingEffect
 {
-	private final int SCREEN_COUNT = 6; // The amount of screens created
+	private final int SCREEN_COUNT = 8; // The amount of screens created
 	private final int KERNEL_MAX = 7; // The max kernel for each blur pass
 	private final float R_FACTOR = 1.5f; // How much each screen's resolution is reduced by
 
@@ -23,9 +24,10 @@ public class BlurAffect extends PostProcessingEffect
 
 		for (int i = 0; i < stepScreens.length; i++)
 		{
-			float r = R_FACTOR * (i + 1);
-			stepScreens[i] = new FboObject((int) (Display.getWidth() / r), (int) (Display.getHeight() / r),
-					FboObject.DEPTH_COLOR_TEXTURES);
+			float r = R_FACTOR * ((i/2) + 1);
+			stepScreens[i] = new FboObject((int) (Display.getWidth() / r), (int) (Display.getHeight() / r));
+			stepScreens[i].addColorAttachment(new ColorTextureAttachment(stepScreens[i].getDimensions()));
+			stepScreens[i].finishSetup();
 		}
 
 	}
@@ -38,24 +40,30 @@ public class BlurAffect extends PostProcessingEffect
 	@Override
 	protected void preAffect()
 	{
-		steps = (int) ((SCREEN_COUNT * KERNEL_MAX) * (scale));
-		steps = Math.min(Math.max(steps, 1), SCREEN_COUNT * KERNEL_MAX);
+		steps = (int) (((SCREEN_COUNT/2) * KERNEL_MAX) * (scale));
+		steps = Math.min(Math.max(steps, 1), (SCREEN_COUNT/2) * KERNEL_MAX);
 	}
 
 	@Override
-	protected FboObject doAffect(FboObject inScreen)
+	protected FboObject doAffect(FboObject inScreen, FboObject outScreen)
 	{
 		PostProcessor.blurShader.start();
-		PostProcessor.blurShader.loadTexture("", inScreen.getColorAttachment(0), 0);
-		int tSteps = (steps - 1) / 11;
+		PostProcessor.blurShader.loadTexture("textureSampler", inScreen.getColorAttachment(0), 0);
+		FboObject currScreen = stepScreens[0];
 
-		for (int i = 0; i <= tSteps; i++)
+		int i = 0;
+		int screenOn = 0;
+		int kernelsLeft = steps;
+		int tSteps = (steps - 1) / KERNEL_MAX;
+
+		while (i <= tSteps)
 		{
-			FboObject currScreen = stepScreens[i];
+			currScreen = stepScreens[screenOn++];
 			currScreen.bindFrameBuffer();
 
 			// Calculate kernel
-			float kernel = Math.min((i + 1) * KERNEL_MAX, steps) - (i * KERNEL_MAX);
+			float kernel = kernelsLeft > KERNEL_MAX ? KERNEL_MAX : kernelsLeft;
+			kernelsLeft -= kernel;
 			kernel = (kernel % 2 == 0) ? kernel + 1 : kernel;
 
 			// load shader variables
@@ -69,14 +77,23 @@ public class BlurAffect extends PostProcessingEffect
 			// Load hblur texture
 			PostProcessor.blurShader.loadTexture("", currScreen.getColorAttachment(0), 0);
 
+			if (i >= tSteps)
+				currScreen = outScreen;
+			else
+				currScreen = stepScreens[screenOn++];
+
+			currScreen.bindFrameBuffer();
+
 			// Vertical Blur
 			PostProcessor.blurShader.loadFloat("dir", 1);
 			render();
 
 			currScreen.unbindFrameBuffer();
+
+			i += 1;
 		}
 
-		return stepScreens[tSteps]; // Save for other uses?
+		return currScreen;
 	}
 
 	@Override
@@ -88,7 +105,6 @@ public class BlurAffect extends PostProcessingEffect
 	@Override
 	public void cleanAffect()
 	{
-		outputFbo.cleanUp();
 		for (FboObject f : stepScreens)
 			f.cleanUp();
 	}

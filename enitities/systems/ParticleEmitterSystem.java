@@ -35,6 +35,12 @@ public class ParticleEmitterSystem extends EntitySystem
 	@Override
 	public void render(MasterRenderer renderer)
 	{
+		for (Entity e : component.keySet())
+		{
+			ParticleEmitterComponent particleComponent = component.get(e);
+			ParticleSystem system = particleComponent.getSystem();
+			system.renderParticles(renderer);
+		}
 	}
 
 	@Override

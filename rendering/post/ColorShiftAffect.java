@@ -22,15 +22,18 @@ public class ColorShiftAffect extends PostProcessingEffect
 	}
 
 	@Override
-	protected FboObject doAffect(FboObject currentScreen)
+	protected FboObject doAffect(FboObject inScreen, FboObject outScreen)
 	{
+		outScreen.bindFrameBuffer();
+
 		PostProcessor.colorShader.start();
-		PostProcessor.colorShader.loadTexture("", currentScreen.getColorAttachment(0), 0);
-		PostProcessor.colorShader.loadInteger("mode", 1);
-		PostProcessor.colorShader.loadVector3("RGBShift", shiftBy.rgb());
+		PostProcessor.colorShader.loadTexture("", inScreen.getColorAttachment(0), 0);
+		PostProcessor.colorShader.loadInteger("mode", 2);
+		PostProcessor.colorShader.loadVector4("RGBShift", shiftBy.rgba());
 		render();
 
-		return outputFbo;
+		outScreen.unbindFrameBuffer();
+		return outScreen;
 	}
 
 	@Override
@@ -42,6 +45,5 @@ public class ColorShiftAffect extends PostProcessingEffect
 	@Override
 	public void cleanAffect()
 	{
-		outputFbo.cleanUp();
 	}
 }

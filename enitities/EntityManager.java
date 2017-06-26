@@ -28,6 +28,7 @@ public class EntityManager
 		addSystem(new LightEmissionSystem());
 		addSystem(new SpriteRenderSystem());
 		addSystem(new StaticRenderSystem());
+		//addSystem(new JBPhysicsSystem());
 		addSystem(new MovementSystem());
 		addSystem(new PickingSystem());
 
@@ -36,6 +37,7 @@ public class EntityManager
 
 	public void addSystem(EntitySystem entitySystem)
 	{
+
 		systems.add(entitySystem);
 	}
 
@@ -57,7 +59,7 @@ public class EntityManager
 			entitySystem.removeEntity(e);
 	}
 
-	public void tick()
+	public void update()
 	{
 		for (EntitySystem entitySystem : systems)
 			entitySystem.tick();

@@ -39,10 +39,9 @@ public class MouseRay
 		return new Vector4f(eyeCoords.x(), eyeCoords.y(), -1f, 0f);
 	}
 
-	// recalculated view, change later
 	private Vector3f toWorldSpace(Camera c, Vector4f eyeCoords)
 	{
-		Matrix4f invertedView = Matrix4f.invert(MatrixGenerator.genViewMatrix(c), null);
+		Matrix4f invertedView = Matrix4f.invert(c.getViewMatrix(), null);
 		Vector4f rayWorld = LinearAlgebra.mult(invertedView, eyeCoords, null);
 		Vector3f mouseRay = new Vector3f(rayWorld.x(), rayWorld.y(), rayWorld.z());
 		mouseRay.normalize();
@@ -51,7 +50,7 @@ public class MouseRay
 
 	public Vector3f getRay()
 	{
-		return mouseRay;//calculateRay();//mouseRay;
+		return mouseRay;
 	}
 
 	public Vector3f getRayScaled(float s)

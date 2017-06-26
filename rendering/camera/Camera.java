@@ -119,7 +119,7 @@ public abstract class Camera
 		this.clippingFrustum = new Frustum();
 	}
 
-	public void update()
+	public void checkSpawn()
 	{
 		Matrix4f rot = new Matrix4f();
 		rot.setIdentity();
@@ -131,7 +131,7 @@ public abstract class Camera
 		forward = LinearAlgebra.mult(rot, Vector3f.FORWARD, forward);
 
 		/*Frustum*/
-		/*clippingFrustum.update(position, up, right, forward, fov, far);
+		/*clippingFrustum.checkSpawn(position, up, right, forward, fov, far);
 
 		viewMatrix = MatrixGenerator.genViewMatrix(this);
 	}

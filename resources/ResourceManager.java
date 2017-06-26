@@ -1,9 +1,9 @@
 package resources;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * created by mjmcc 1/6/2017
@@ -14,15 +14,15 @@ import java.util.Map;
 
 public class ResourceManager
 {
-	// Maximum amount of resources that can be loaded/unloaded per update
-	private static final int MAX_LOADS_PER_CYCLE = 3;
+	// Maximum amount of resources that can be loaded/unloaded per checkSpawn
+	private static final int MAX_LOADS_PER_CYCLE = 5;
 
 	// Map containing loaded resources and their names as keys
 	private Map<String, Resource> resourceNameMap;
 
 	// Queues to hold resources that are queued for loading/unloading
-	private List<Resource> loadQueue;
-	private List<Resource> unloadQueue;
+	private Queue<Resource> loadQueue;
+	private Queue<Resource> unloadQueue;
 
 	/**
 	 * Initialize the resource manager
@@ -30,18 +30,18 @@ public class ResourceManager
 	public ResourceManager()
 	{
 		resourceNameMap = new HashMap<>();
-		loadQueue = new ArrayList<>();
-		unloadQueue = new ArrayList<>();
+		loadQueue = new LinkedBlockingQueue<>();
+		unloadQueue = new LinkedBlockingQueue<>();
 	}
 
 	/**
-	 * Load a single resource.
+	 * Load a single resource (AKA Quick load).
 	 * This method will block until the resource is completely loaded.
 	 * Once the resource is loaded it is added to the {@link #resourceNameMap}
 	 * and can be accessed by calling the generic {@link #getResource(String)}
 	 * method using the resource name as a parameter.
 	 */
-	public <E extends Resource> E loadResource(E r)
+	public <E extends Resource> E directLoadResource(E r)
 	{
 		// Check if the same as another resource
 		for (Resource resource : resourceNameMap.values())
@@ -49,6 +49,24 @@ public class ResourceManager
 				return (E) resource;
 
 		// If new resource
+		if (!r.isLoaded())
+		{
+			r.preloadOnDaemon();
+			r.load(this);
+			r.setId();
+			r.setLoaded(true);
+			resourceNameMap.put(r.getName(), r);
+		}
+
+		return r;
+	}
+
+	/**
+	 * Load a resource. Call this after a daemon thread has preloaded the
+	 * resource. This should only get called within this manager.
+	 */
+	private Resource loadResource(Resource r)
+	{
 		if (!r.isLoaded())
 		{
 			r.load(this);
@@ -69,7 +87,7 @@ public class ResourceManager
 	{
 		if (r.isLoaded())
 		{
-			r.cleanUp();
+			r.unload();
 			r.setLoaded(false);
 			resourceNameMap.remove(r.getName());
 		}
@@ -81,7 +99,7 @@ public class ResourceManager
 	 * Load a package of resources.
 	 * This method will add a resource package's resources to the
 	 * managers {@link #loadQueue} and can be loaded on a background thread
-	 * using the {@link #runBackgroundManagement()} method. You can find
+	 * using the {@link #loadFromQueue()} method. You can find
 	 * this packages load status using the packages isLoaded variable.
 	 *
 	 * @param resourcePackage the package to be loaded
@@ -89,30 +107,28 @@ public class ResourceManager
 	 */
 	public void loadResourcePackage(ResourcePackage resourcePackage, boolean block)
 	{
-		loadQueue.addAll(resourcePackage.getResources());
-
-		while (!resourcePackage.isLoaded() && block)
-			runBackgroundManagement();
-
-		// reimplement ???
-		/*while (!resourcePackage.isLoaded() && block)
-		{
-			try
+		Thread loadDaemon = new Thread(() -> {
+			for (Resource r : resourcePackage.getResources())
 			{
-				Thread.currentThread().sleep(10);
-			} catch (InterruptedException e)
-			{
-				e.printStackTrace();
+				if (!resourceNameMap.containsValue(r))
+				{
+					r.preloadOnDaemon();
+					loadQueue.add(r);
+				}
 			}
-		}
-		}*/
+		});
+
+		loadDaemon.start();
+
+		while (block && !resourcePackage.isLoaded())
+			loadFromQueue();
 	}
 
 	/**
 	 * Unload a package of resources.
 	 * This method will add a resource package's resources to the
 	 * managers {@link #unloadQueue} and can be unloaded on a background thread
-	 * using the {@link #runBackgroundManagement()} method. You can find
+	 * using the {@link #loadFromQueue()} method. You can find
 	 * this packages load status using the packages isLoaded variable.
 	 *
 	 * @param resourcePackage the package to be unloaded
@@ -123,40 +139,27 @@ public class ResourceManager
 		unloadQueue.addAll(resourcePackage.getResources());
 
 		while (resourcePackage.isLoaded() && block)
-			runBackgroundManagement();
-
-		// reimplement ???
-		/*while (resourcePackage.isLoaded() && block)
-		{
-			try
-			{
-				Thread.currentThread().sleep(10);
-			} catch (InterruptedException e)
-			{
-				e.printStackTrace();
-			}
-		}*/
+			unloadFromQueue();
 	}
 
-	/**
-	 * This method runs the background management of resource.
-	 * It is meant to be called on a separate thread, so as to not block the current one.
-	 * Mainly this method is used to load and unload resources from the queues in the background.
-	 */
-	public void runBackgroundManagement()
+	public void loadFromQueue()
 	{
 		int toLoad = Math.min(loadQueue.size(), MAX_LOADS_PER_CYCLE);
-		int toUnload = Math.min(unloadQueue.size(), MAX_LOADS_PER_CYCLE);
 
 		for (int i = 0; i < toLoad; i++)
 		{
-			Resource resource = loadQueue.remove(0);
+			Resource resource = loadQueue.remove();
 			loadResource(resource);
 		}
+	}
+
+	public void unloadFromQueue()
+	{
+		int toUnload = Math.min(unloadQueue.size(), MAX_LOADS_PER_CYCLE);
 
 		for (int i = 0; i < toUnload; i++)
 		{
-			Resource resource = unloadQueue.remove(0);
+			Resource resource = unloadQueue.remove();
 			unloadResource(resource);
 		}
 	}
@@ -210,6 +213,6 @@ public class ResourceManager
 	public void cleanUp()
 	{
 		for (Resource r : resourceNameMap.values())
-			r.cleanUp();
+			r.unload();
 	}
 }

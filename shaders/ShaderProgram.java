@@ -21,10 +21,12 @@ import java.util.Map;
 
 public abstract class ShaderProgram
 {
-	private static int NO_ID = -1;
 	private static final String SHADER_FOLDER = "res/shaders/";
 
-	private int programID;
+	private static int NO_ID = -1;
+	private static int activeShader = 0;
+
+	private int programID = NO_ID;
 	private int vertexShaderID = NO_ID;
 	private int fragmentShaderID = NO_ID;
 	private int geometryShaderID = NO_ID;
@@ -64,12 +66,16 @@ public abstract class ShaderProgram
 
 	public void start()
 	{
-		GL20.glUseProgram(programID);
+		if(activeShader != programID)
+			GL20.glUseProgram(programID);
+		activeShader = programID;
 	}
 
 	public void stop()
 	{
-		GL20.glUseProgram(0);
+		if(activeShader != 0)
+			GL20.glUseProgram(0);
+		activeShader = 0;
 	}
 
 	public void cleanUp()
@@ -149,7 +155,7 @@ public abstract class ShaderProgram
 		GL20.glUniform3f(location, value.x(), value.y(), value.z());
 	}
 
-	protected void loadVector4(String variableName, Vector4f value)
+	public void loadVector4(String variableName, Vector4f value)
 	{
 		int location = getUniformLocation(variableName);
 
@@ -187,7 +193,7 @@ public abstract class ShaderProgram
 		GL20.glUniform1(location, floatBuffer);
 	}
 
-	protected void loadMatrix(String variableName, Matrix4f matrix)
+	public void loadMatrix(String variableName, Matrix4f matrix)
 	{
 		int location = getUniformLocation(variableName);
 
@@ -259,4 +265,15 @@ public abstract class ShaderProgram
 	{
 		return programID;
 	}
+
+
+	public static void stopActiveShaders()
+	{
+		if(activeShader != 0)
+			GL20.glUseProgram(0);
+		activeShader = 0;
+	}
+
+
+
 }

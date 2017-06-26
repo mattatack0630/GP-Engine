@@ -29,6 +29,7 @@ public class DisplayManager
 		try
 		{
 			Display.setDisplayMode(new DisplayMode(WIDTH, HEIGHT));
+			Display.setVSyncEnabled(false);
 			//Display.setIcon(IconBuffer.load(ICON_FILE));
 			Display.create(new PixelFormat(), attribs);
 
@@ -91,12 +92,15 @@ public class DisplayManager
 	public static Vector2f pixelToGlConversion(Vector2f pix)
 	{
 		Vector2f gl = new Vector2f(pix);
-		gl.set((gl.x() / WIDTH * 2.0f) - 1.0f, 1.0f - (gl.y() / HEIGHT * 2.0f));
+		gl.set((gl.x() / WIDTH * 2.0f) - 1.0f, (gl.y() / HEIGHT * 2.0f) - 1);
 		return gl;
 	}
 
-	public static Vector2f glToPixelConversion()
+	public static Vector2f glToPixelConversion(Vector2f gl)
 	{
+		Vector2f pix = new Vector2f();
+		pix.setX((gl.x() + 1.0f) / 2.0f * WIDTH);
+		pix.setY((gl.y() + 1.0f) / 2.0f * HEIGHT);
 		return null;
 	}
 }

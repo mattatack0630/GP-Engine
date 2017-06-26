@@ -1,5 +1,6 @@
 package rendering;
 
+import input.picker.PickingData;
 import utils.math.Transform;
 import utils.math.linear.matrix.Matrix4f;
 import utils.math.linear.rotation.Euler;
@@ -16,7 +17,7 @@ public class RenderData
 	public Transform transform;
 
 	// Picking data
-	public Vector2f pickingId;
+	public Vector2f objectId;
 
 	// Boolean flags
 	public boolean frustumCheck;
@@ -32,7 +33,7 @@ public class RenderData
 	public RenderData(Vector3f pos, Rotation rot, Vector3f s)
 	{
 		this.transform = new Transform(new Vector3f(pos), rot.copy(), new Vector3f(s));
-		this.pickingId = Color.BLACK.rg();
+		this.objectId = PickingData.nextId();
 		this.frustumCheck = true;
 	}
 
@@ -42,7 +43,7 @@ public class RenderData
 
 		this.transform = new Transform((Vector3f) vecs[0], new Quaternion((Vector4f) vecs[1]), (Vector3f) vecs[2]);
 
-		this.pickingId = Color.BLACK.rg();
+		this.objectId = Color.random().rg();
 		this.frustumCheck = true;
 	}
 
@@ -68,14 +69,14 @@ public class RenderData
 		return transform.getMatrix();
 	}
 
-	public Vector2f getPickingId()
+	public Vector2f getObjectId()
 	{
-		return pickingId;
+		return objectId;
 	}
 
-	public void setPickingId(Vector2f p)
+	public void setObjectId(Vector2f p)
 	{
-		this.pickingId = p;
+		this.objectId = p;
 	}
 
 	public boolean shouldCheckBounds()
@@ -111,5 +112,10 @@ public class RenderData
 	public void setPosition(Vector3f position)
 	{
 		this.transform.setPosition(position);
+	}
+
+	public void setDebugColor(Color debugColor)
+	{
+		this.tempColor = debugColor;
 	}
 }

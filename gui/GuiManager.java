@@ -1,187 +1,109 @@
 package gui;
 
+import gui.transition.Transition;
+import gui.components.Component;
 import rendering.renderers.MasterRenderer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Created by mjmcc on 10/22/2016.
- * <p>
- * A content the smallest unit, it has a size, and functionality of sorts
- * A component is a element on the screen which can hold and display content
- * A panel is a group of components that are placed together in a layout (ei. a grid or vertical aligned panel)
- * A GuiScene is a setElements of panels that are grouped together, they move together (ei. a popup)
- * A GuiScreen is a setElements of GuiScene which are shown together, like a start screen, or a main screen, end screen
+ * Created by mjmcc on 3/14/2017.
  */
 public class GuiManager
 {
-	private static final String GUI_FILES_PATH = "res/gui_files/";
-	private static final String DEFAULT_POPUP_SOURCE = "popup.xml";
+	private Map<GuiScene, List<Transition>> sceneTransitions;
+	private List<Component> sceneComponents;
 
-	private static String popupSource;
-	private static HashMap<String, ArrayList<GuiScene>> screenMap;
-	private static ArrayList<GuiScene> currentScreenGui;
-	private static String currentScreenName;
-
-	public static void init()
+	public GuiManager()
 	{
-		screenMap = new HashMap<>();
-		currentScreenGui = new ArrayList<>();
-		currentScreenName = "";
-		popupSource = DEFAULT_POPUP_SOURCE;
+		sceneTransitions = new HashMap<>();
+		sceneComponents = new ArrayList<>();
 	}
 
-	public static void tick()
+	/**
+	 * Tick each GuiScene in the managers list.
+	 * This method also goes through each scenes transitions and applies them if
+	 * they are not finished.
+	 * */
+	public void update()
 	{
-		for (int i = 0; i < currentScreenGui.size(); i++)
+		for (GuiScene scene : sceneTransitions.keySet())
 		{
-			GuiScene s = currentScreenGui.get(i);
-			s.tick();
-			if (s.isRemovable())
-				currentScreenGui.remove(s);
+			List<Transition> transitions = sceneTransitions.get(scene);
+
+			for (int i = transitions.size() - 1; i >= 0; i--)
+			{
+				Transition t = transitions.get(i);
+
+				t.applyTransition(scene);
+
+				if (t.isFinished())
+					transitions.remove(t);
+			}
+
+			//scene.tick();
+		}
+
+		for (Component component : sceneComponents)
+			component.tick();
+		// check disputing clicks/ hovers in component scenes, resolve to the top component
+	}
+
+	/**
+	 * Render each Component in the managers list.
+	 * Render in order of each components renderLevel
+	 * */
+	public void render(MasterRenderer renderer)
+	{
+		for (Component component : sceneComponents)
+			component.render(renderer);
+	}
+
+	/**
+	 * Add a GuiScene to the managers list.
+	 * This method will add both a scene to the transitions map
+	 * and also order the scenes child components based on render level
+	 * */
+	public void show(GuiScene scene)
+	{
+		if(!sceneTransitions.containsKey(scene))
+		{
+			List<Component> components = scene.getAllChildren();
+
+			sceneComponents.addAll(components);
+			//for (Component component : components)
+			//	Sorter.dynamicSort(sceneComponents, component);
+
+			sceneTransitions.put(scene, new ArrayList<>());
 		}
 	}
 
-	public static void render(MasterRenderer renderer)
+	/**
+	 * Remove a GuiScene from the manager.
+	 * This method also removes each child component of the scene
+	 * from the managers list.
+	 * */
+	public void hide(GuiScene scene)
 	{
-		for (GuiScene s : currentScreenGui)
-			s.render(renderer);
+		List<Component> components = scene.getAllChildren();
+
+		for (Component component : components)
+			sceneComponents.remove(component);
+
+		sceneTransitions.remove(scene);
 	}
 
-	public static void setSceneToScreen(GuiScene... scene)
+	/**
+	 * Apply a transition to a GuiScene, this method also adds the scene to
+	 * the managers list if it isn't already.
+	 * */
+	public void applyTransition(Transition transition, GuiScene scene)
 	{
-		currentScreenGui.clear();
-
-		for (GuiScene s : scene)
-			currentScreenGui.add(s);
-	}
-
-	public static void setSceneToScreen(String screenName, GuiScene... scene)
-	{
-		String currScreen = currentScreenName;
-		switchScreen(screenName);
-		setSceneToScreen(scene);
-		switchScreen(currScreen);
-	}
-
-	public static void addSceneToScreen(GuiScene... scene)
-	{
-		for (GuiScene s : scene)
-			currentScreenGui.add(s);
-	}
-
-	public static void addSceneToScreen(String screenName, GuiScene... scene)
-	{
-		String currScreen = currentScreenName;
-		switchScreen(screenName);
-		addSceneToScreen(scene);
-		switchScreen(currScreen);
-	}
-
-	public static void removeSceneFromScreen(GuiScene... scene)
-	{
-		for (GuiScene s : scene)
-			currentScreenGui.remove(s);
-	}
-
-	public static void removeSceneFromScreen(String screenName, GuiScene... scene)
-	{
-		String currScreen = currentScreenName;
-		switchScreen(screenName);
-		removeSceneFromScreen(scene);
-		switchScreen(currScreen);
-	}
-
-	public static GuiScene getSceneOnScreen(String screenName, String id)
-	{
-		String currScreen = currentScreenName;
-		switchScreen(screenName);
-		GuiScene result = getSceneOnScreen(id);
-		switchScreen(currScreen);
-		return result;
-	}
-
-	public static GuiScene getSceneOnScreen(String id)
-	{
-		GuiScene result = null;
-
-		for (GuiScene s : currentScreenGui)
-			if (s.getId().equals(id))
-				result = s;
-
-		return result;
-	}
-
-	public static void clearCurrentScreen()
-	{
-		currentScreenGui.clear();
-	}
-
-	public static void setCurrentScreenName(String name)
-	{
-		screenMap.remove(currentScreenName);
-		currentScreenName = name;
-		screenMap.put(name, currentScreenGui);
-	}
-
-	public static String getCurrentSceneName()
-	{
-		return currentScreenName;
-	}
-
-	public static void setPopupXMLSource(String path)
-	{
-		popupSource = path;
-	}
-
-	// Add a popup with a message and title, based on default template
-	public static PopupGui addPopup(String title, String message)
-	{
-		PopupGui p = new PopupGui(message, 1, .1f, Align.BOTTOM_RIGHT, popupSource);
-		p.setTitle(title);
-		return addPopup(p);
-	}
-
-	// Add any popup
-	public static PopupGui addPopup(PopupGui popupGui)
-	{
-		currentScreenGui.add(popupGui);
-		return popupGui;
-	}
-
-	public static ArrayList<GuiScene> makeNewScreen(String screenName)
-	{
-		ArrayList<GuiScene> list = new ArrayList<>();
-		screenMap.put(screenName, list);
-		return list;
-	}
-
-	// Close currently opened screen, and display this one
-	public static void switchScreen(String sceneName)
-	{
-		for (GuiScene s : currentScreenGui)
-		{
-			s.onScreenClose();
-			s.hide();
-		}
-
-		if (!screenMap.containsKey(sceneName))
-			makeNewScreen(sceneName);
-
-		currentScreenGui = screenMap.get(sceneName);
-		currentScreenName = sceneName;
-
-		for (GuiScene s : currentScreenGui)
-		{
-			s.onScreenOpen();
-			s.show();
-		}
-	}
-
-	// Overlay a screen atop current one
-	public void overlayScreen(String screenName)
-	{
-
+		List<Transition> transitions = sceneTransitions.containsKey(transition) ? sceneTransitions.get(scene) : new ArrayList<>();
+		transitions.add(transition);
+		sceneTransitions.put(scene, transitions);
 	}
 }

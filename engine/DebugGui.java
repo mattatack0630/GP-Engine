@@ -1,14 +1,6 @@
 package engine;
 
-import gui.Component.ButtonComponent;
-import gui.Component.LabelComponent;
-import gui.Component.SliderComponent;
 import gui.GuiScene;
-import gui.Transition.MoveTransition;
-import gui.Transition.OpacityTransition;
-import org.lwjgl.input.Keyboard;
-import utils.ToggleBoolean;
-import utils.math.linear.vector.Vector2f;
 
 /**
  * Created by mjmcc on 10/20/2016.
@@ -16,7 +8,7 @@ import utils.math.linear.vector.Vector2f;
 
 public class DebugGui extends GuiScene
 {
-	private static final String DEBUG_XML_PATH = "debugGui.xml";
+/*	private static final String DEBUG_XML_PATH = EngineFiles.GUI_PATH + "debugGui.xml";
 	private static final int HIDE_KEY = Keyboard.KEY_SPACE;
 
 	private MoveTransition mt;
@@ -35,10 +27,10 @@ public class DebugGui extends GuiScene
 	public ButtonComponent t3;
 	public ButtonComponent t4;
 
-	public SliderComponent s0;
-	public SliderComponent s1;
-	public SliderComponent s2;
-	public SliderComponent s3;
+	public VSliderComponent s0;
+	public VSliderComponent s1;
+	public VSliderComponent s2;
+	public VSliderComponent s3;
 
 	// Output labels
 	public LabelComponent l0;
@@ -61,10 +53,10 @@ public class DebugGui extends GuiScene
 		t3 = (ButtonComponent) this.getChildById("t3");
 		t4 = (ButtonComponent) this.getChildById("t4");
 
-		s0 = (SliderComponent) this.getChildById("s0");
-		s1 = (SliderComponent) this.getChildById("s1");
-		s2 = (SliderComponent) this.getChildById("s2");
-		s3 = (SliderComponent) this.getChildById("s3");
+		s0 = (VSliderComponent) this.getChildById("s0");
+		s1 = (VSliderComponent) this.getChildById("s1");
+		s2 = (VSliderComponent) this.getChildById("s2");
+		s3 = (VSliderComponent) this.getChildById("s3");
 
 		l0 = (LabelComponent) this.getChildById("l0");
 		l1 = (LabelComponent) this.getChildById("l1");
@@ -113,5 +105,5 @@ public class DebugGui extends GuiScene
 	public boolean isOpen()
 	{
 		return toggleClose.isTrue();
-	}
+	}*/
 }

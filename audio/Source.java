@@ -112,7 +112,7 @@ public class Source
 
 	/**
 	 * Get the last time this source was played or paused
-	 * TODO make this not update all the time
+	 * TODO make this not checkSpawn all the time
 	 */
 	public float lastPlayed()
 	{

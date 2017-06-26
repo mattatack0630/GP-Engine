@@ -15,13 +15,16 @@ public class InvertAffect extends PostProcessingEffect
 	}
 
 	@Override
-	public FboObject doAffect(FboObject currentScreen)
+	public FboObject doAffect(FboObject currentScreen, FboObject outScreen)
 	{
+		outScreen.bindFrameBuffer();
+
 		PostProcessor.invertShader.start();
-		PostProcessor.invertShader.loadTexture("", currentScreen.getColorAttachment(0), 0);
+		PostProcessor.invertShader.loadTexture("textureSampler", currentScreen.getColorAttachment(0), 0);
 		render();
 
-		return outputFbo;
+		outScreen.unbindFrameBuffer();
+		return outScreen;
 	}
 
 	@Override
@@ -33,6 +36,5 @@ public class InvertAffect extends PostProcessingEffect
 	@Override
 	public void cleanAffect()
 	{
-		outputFbo.cleanUp();
 	}
 }

@@ -36,7 +36,7 @@ public class SoundEffectEmissionSystem extends EntitySystem
 
 			if (sound != null)
 			{
-				Engine.getAudio().play(sound, source);
+				Engine.getAudioManager().play(sound, source);
 				soundEffectComponent.emitSound(null);
 			}
 		}

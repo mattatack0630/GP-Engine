@@ -21,14 +21,17 @@ public class ColorClipAffect extends PostProcessingEffect
 	}
 
 	@Override
-	protected FboObject doAffect(FboObject currentScreen)
+	protected FboObject doAffect(FboObject inScreen, FboObject outScreen)
 	{
+		outScreen.bindFrameBuffer();
+
 		PostProcessor.colorClipShader.start();
-		PostProcessor.colorClipShader.loadTexture("", currentScreen.getColorAttachment(0), 0);
+		PostProcessor.colorClipShader.loadTexture("", inScreen.getColorAttachment(0), 0);
 		PostProcessor.colorClipShader.loadFloat("clippingValue", clipValue);
 		render();
 
-		return outputFbo;
+		outScreen.unbindFrameBuffer();
+		return outScreen;
 	}
 
 	@Override
@@ -40,6 +43,5 @@ public class ColorClipAffect extends PostProcessingEffect
 	@Override
 	public void cleanAffect()
 	{
-		outputFbo.cleanUp();
 	}
 }

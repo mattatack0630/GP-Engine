@@ -132,16 +132,23 @@ public class IntersectMath
 		Vector3f ea = Vector3f.add(geo0.getExtends(), geo1.getExtends(), null);
 		Vector3f cs = Vector3f.sub(geo0.getCenter(), geo1.getCenter(), null);
 		Vector3f csa = (Vector3f) new Vector3f(cs).absolute();
-		Vector3f sub = Vector3f.sub(ea, csa, null);
 
-		data.setIntersecting((sub.x() > 0 && sub.y() > 0 && sub.z() > 0));
+		data.setIntersecting((ea.x() > csa.x() && ea.y() > csa.y() && ea.z() > csa.z()));
 
 		if (data.isIntersecting())
 		{
+			Vector3f es = Vector3f.sub(geo0.getExtends(), geo1.getExtends(), null);
+			es = (Vector3f) es.absolute();
+
+			if (csa.x() < Maths.abs(es.x()) && csa.y() < Maths.abs(es.y()) && csa.z() < Maths.abs(es.z()))
+				data.setIntersectType(IntersectType.CONTAINS);
+			else
+				data.setIntersectType(IntersectType.EDGES);
+
 			if (params.isCalculateIntersectNormal())
 			{
 				Vector3f normal = new Vector3f();
-
+				Vector3f sub = Vector3f.sub(ea, csa, null);
 				float min = Maths.min(sub.x(), sub.y(), sub.z());
 
 				if (min == sub.x()) normal.setX(cs.x() < 0 ? -1 : 1);
@@ -208,60 +215,3 @@ public class IntersectMath
 		return data;
 	}
 }
-/*
-		Vector3f asize = new Vector3f(geo0.getExtends()).scale(2.0f);
-		float dminx = (amax.x() - bmin.x());
-		float dmaxx = (bmax.x() - amin.x());
-		float dminy = (amax.y() - bmin.y());
-		float dmaxy = (bmax.y() - amin.y());
-		float dminz = (amax.z() - bmin.z());
-		float dmaxz = (bmax.z() - amin.z());
-
-				Vector3f c0 = geo0.getCenter();
-		Vector3f c1 = geo1.getCenter();
-		Vector3f e0 = geo0.getExtends();
-		Vector3f e1 = geo1.getExtends();
-		Vector3f cs = Vector3f.sub(c0, c1, null);
-
-		boolean xin = (Math.abs(cs.x()) <= (e0.x() + e1.x()));
-		boolean yin = (Math.abs(cs.y()) <= (e0.y() + e1.y()));
-		boolean zin = (Math.abs(cs.z()) <= (e0.z() + e1.z()));
-
-		data.setIntersecting(xin && yin && zin);
-
-		if (data.isIntersecting())
-		{
-			if (params.isCalculateIntersectPoint())
-			{
-				Vector3f p = new Vector3f((cs.x() >= 0 ? -1 : 1), (cs.y() >= 0 ? -1 : 1), (cs.z() >= 0 ? -1 : 1));
-				p.multElements(geo0.getExtends()).add(geo0.getCenter());
-				Vector3f cp = Geometry.pointOn(geo1, geo0, p);
-				// make better by keeping track of closest face
-
-				if (params.isCalculateIntersectNormal())
-				{
-					float mx0 = (bmin.x() - amax.x());
-					float mx1 = (bmax.x() - amin.x());
-					float my0 = (bmin.y() - amax.y());
-					float my1 = (bmax.y() - amin.y());
-					float mz0 = (bmin.z() - amax.z());
-					float mz1 = (bmax.z() - amin.z());
-					mx0 = mx0 > mx1 ? mx0 : mx1;
-					my0 = my0 > my1 ? my0 : my1;
-					mz0 = mz0 > mz1 ? mz0 : mz1;
-
-					Vector3f n = new Vector3f();
-
-					if(mx0 < my0 && mx0 < mz0)
-						n.setX((cs.x()));
-					if(my0 < mx0 && my0 < mz0)
-						n.setY((cs.y() > 0 ? -1 : 1));
-					if(mz0 < mx0 && mz0 < my0)
-						n.setZ((cs.z() > 0 ? -1 : 1));
-					System.out.println(cs);
-
-					data.setIntersectionNormal(n);
-				}
-			}
-		}
-		*/

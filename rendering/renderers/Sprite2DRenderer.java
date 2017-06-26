@@ -7,10 +7,10 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import rendering.Light;
 import rendering.SpriteRenderObject;
+import rendering.VaoObject;
 import rendering.camera.Camera;
 import shaders.Sprite2DShader;
 import utils.VaoLoader;
-import utils.VaoObject;
 import utils.math.linear.matrix.Matrix4f;
 import utils.math.linear.vector.Vector2f;
 import utils.math.linear.vector.Vector3f;
@@ -24,7 +24,7 @@ import java.util.List;
 public class Sprite2DRenderer
 {
 	private static final float[] POSITIONS = new float[]{-.5f, .5f, 0, -.5f, -.5f, 0, .5f, .5f, 0, .5f, -.5f, 0};
-	private static final VaoObject QUAD = VaoLoader.loadModel(3, POSITIONS);
+	private static final VaoObject QUAD = VaoLoader.loadModel(3, POSITIONS, 4);
 
 	private Sprite2DShader shader = new Sprite2DShader();
 
@@ -85,7 +85,7 @@ public class Sprite2DRenderer
 		SpriteAnimation animation = sprite.getAnimation(renderData.getAnimationOn());
 		Vector4f coords = animation.getCurrAnimationCoords(renderData.getTimeAt());
 
-		shader.loadVector2("pickingId", renderData.getPickingId());
+		shader.loadVector2("pickingId", renderData.getObjectId());
 		shader.loadTransformationMatrix(transform);
 		shader.loadAnimationCoords(coords);
 		shader.loadFlip(false, false);

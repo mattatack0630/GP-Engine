@@ -1,13 +1,14 @@
 package gui;
 
-import gui.Component.Component;
-import gui.Component.Panel.Panel;
-import gui.Transition.Transition;
-import gui.XML.SXMLParser;
+import gui.transition.Transition;
+import gui.components.Component;
+import gui.components.Panel;
+import parsing.gxml.SXMLParser;
 import rendering.renderers.MasterRenderer;
 import utils.math.linear.vector.Vector2f;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by mjmcc on 10/11/2016.
@@ -16,7 +17,6 @@ public class GuiScene
 {
 	private String id;
 	private boolean visible;
-	private boolean isRemovable;
 	protected ArrayList<Panel> directChildren;
 	public Vector2f size;
 	public Vector2f position;
@@ -25,7 +25,6 @@ public class GuiScene
 	{
 		id = "";
 		visible = false;
-		isRemovable = false;
 		directChildren = new ArrayList<>();
 		size = new Vector2f();
 		position = new Vector2f();
@@ -34,7 +33,7 @@ public class GuiScene
 	public GuiScene(String srcXml)
 	{
 		this();
-		directChildren.addAll(SXMLParser.parse("res/gui_files/" + srcXml).getDirectChildren());
+		directChildren.addAll(SXMLParser.parse(srcXml).getDirectChildren());
 		build();
 		show();
 	}
@@ -50,7 +49,10 @@ public class GuiScene
 			directChildren.add(p);
 	}
 
-	public void addPanels(ArrayList<Panel> panels)
+	/**
+	 * Add an array of panels to this guiScene
+	 */
+	public void addPanels(List<Panel> panels)
 	{
 		for (Panel p : panels)
 			addPanel(p);
@@ -69,9 +71,13 @@ public class GuiScene
 			return;
 
 		for (Panel panel : directChildren)
-			panel.updatePosition(p);
+			panel.setPosition(p);
 	}
 
+	/**
+	 * Set the overall opacity of this guiScene. This will in turn set all of the
+	 * components in this scene.
+	 */
 	public void setOpacity(float opacity)
 	{
 		ArrayList<Component> c = getAllChildren();
@@ -96,29 +102,33 @@ public class GuiScene
 	public Panel getRoot()
 	{
 		if (directChildren.isEmpty())
-			return new Panel(new Vector2f());
+			return null;
 
 		return directChildren.get(0);
 	}
 
-	// Show the scene. Tick and Render
+	/**
+	 * Show the scene. Tick and Render
+	 */
 	public void show()
 	{
 		visible = true;
 	}
 
-	// Hide the scene. Tick and Render
+	/**
+	 * Hide the scene. Don't Tick and Render
+	 */
 	public void hide()
 	{
 		visible = false;
 	}
 
 	/**
-	 * Tick the panels in this scene.  Which tick their child components
+	 * Tick the panels in this scene.  Which checkSpawn their child components
 	 */
 	public void tick()
 	{
-		if (!visible)
+/*		if (!visible)
 			return;
 
 		boolean changed = false;
@@ -127,11 +137,11 @@ public class GuiScene
 		for (Panel p : directChildren)
 		{
 			p.tick();
-			changed = changed || p.getHasUpdatedDimensions();
+			changed = changed || p.hasUpdatedDimensions;
 		}
 
 		if (changed)
-			build();
+			build();*/
 	}
 
 	/**
@@ -141,11 +151,8 @@ public class GuiScene
 	 */
 	public void render(MasterRenderer renderer)
 	{
-		////if (!visible)
-		//	return;
-
-		for (Panel p : directChildren)
-			p.render(renderer);
+	/*	for (Panel p : directChildren)
+			p.render(renderer);*/
 	}
 
 	/**
@@ -161,6 +168,7 @@ public class GuiScene
 			allChildren.addAll(p.getChildren());
 			allChildren.add(p);
 		}
+
 		return allChildren;
 	}
 
@@ -199,13 +207,28 @@ public class GuiScene
 		return null;
 	}
 
+	public ArrayList<Component> getChildByClass(String className)
+	{
+		ArrayList<Component> components = getAllChildren();
+		ArrayList<Component> classComps = new ArrayList<>();
+
+		for (Component c : components)
+			if (c.identifier.isInClass("#" + className))
+				classComps.add(c);
+
+		return classComps;
+	}
+
 	/**
 	 * Rebuild the scene. Replace the components and recalculate sizes
 	 */
 	public void build()
 	{
-		// Get every component (children first)
+		for (Panel panel1 : directChildren)
+			panel1.build();
+/*		// Get every component (children first)
 		ArrayList<Component> components = getAllChildren();
+
 		// Calculate the size based on just prefSize and min/max
 		for (Component c : components)
 			c.calculateFinalSize();
@@ -222,7 +245,7 @@ public class GuiScene
 		// Get the panels to place their components (Children first)
 		for (Component c : components)
 			if (c instanceof Panel)
-				((Panel) c).placeComponents();
+				((Panel) c).placeComponents();*/
 
 		calculateSize();
 	}
@@ -243,46 +266,6 @@ public class GuiScene
 		}
 
 		size = Vector2f.sub(max, min, null);
-	}
-
-	public void attachNewSource(String srcPath)
-	{
-		directChildren.clear();
-		directChildren.addAll(SXMLParser.parse(srcPath).directChildren);
-		build();
-	}
-
-	/**
-	 * Methods called by the GuiManager when an action is
-	 * submitted on a GuiScene
-	 */
-	public void onScreenPlace()
-	{
-	} // When the gui is added to a screen
-
-	public void onScreenRemove()
-	{
-	} // When the gui is removed from the screen
-
-	public void onScreenClose()
-	{
-	} // When the screen this gui is on becomes hidden
-
-	public void onScreenOpen()
-	{
-	} // When the screen this gui is on becomes shown
-
-	/**
-	 * Return whether or not this guiScene should be removed
-	 */
-	public boolean isRemovable()
-	{
-		return isRemovable;
-	}
-
-	public void setRemovable(boolean removable)
-	{
-		this.isRemovable = removable;
 	}
 
 	public String getId()

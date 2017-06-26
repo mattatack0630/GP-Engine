@@ -112,7 +112,7 @@ public class StaticShader extends ShaderProgram
 
 	public void loadShadowMap(FboObject shadowMap, Matrix4f shadowMapConversion, int place)
 	{
-		super.loadTexture("shadowMap", shadowMap.getDepthAttachment(), place);
+		super.loadTexture("shadowMap", shadowMap.getColorAttachment(0), place);
 		super.loadFloat("shadowMapSize", shadowMap.getDimensions().x());
 		super.loadMatrix("shadowSpaceConversion", shadowMapConversion);
 	}

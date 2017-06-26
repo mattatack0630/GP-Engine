@@ -9,9 +9,6 @@ public class IdentityAffect extends PostProcessingEffect
 {
 	public IdentityAffect()
 	{
-		outputFbo.cleanUp();
-		outputFbo = FboObject.SCREEN;
-		outputFbo.finishSetup();
 	}
 
 	@Override
@@ -21,13 +18,16 @@ public class IdentityAffect extends PostProcessingEffect
 	}
 
 	@Override
-	protected FboObject doAffect(FboObject currentScreen)
+	public FboObject doAffect(FboObject currentScreen, FboObject outScreen)
 	{
+		outScreen.bindFrameBuffer();
+
 		PostProcessor.identityShader.start();
 		PostProcessor.identityShader.loadTexture("", currentScreen.getColorAttachment(0), 0);
 		render();
 
-		return outputFbo;
+		outScreen.bindFrameBuffer();
+		return outScreen;
 	}
 
 	@Override
@@ -39,6 +39,5 @@ public class IdentityAffect extends PostProcessingEffect
 	@Override
 	public void cleanAffect()
 	{
-		outputFbo.cleanUp();
 	}
 }

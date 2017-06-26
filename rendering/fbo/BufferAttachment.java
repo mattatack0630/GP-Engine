@@ -1,15 +1,17 @@
 package rendering.fbo;
 
 import org.lwjgl.opengl.GL30;
+import utils.math.linear.vector.Vector2f;
 
 /**
  * Created by mjmcc on 12/9/2016.
  */
-public class BufferAttachment extends Attachment
+public abstract class BufferAttachment extends Attachment
 {
-	public BufferAttachment(int id)
+
+	public BufferAttachment(Vector2f dimensions)
 	{
-		super(id);
+		super(dimensions);
 	}
 
 	@Override

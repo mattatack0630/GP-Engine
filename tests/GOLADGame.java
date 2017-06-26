@@ -1,282 +1,83 @@
 package tests;
 
-import engine.Engine;
-import engine.GameState;
-import engine.GameStateManager;
-import gui.GuiManager;
-import javafx.util.Pair;
-import rendering.renderers.MasterRenderer;
-import utils.math.linear.vector.Vector3f;
+import rendering.Color;
+import states.GameState;
+import tests.states.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Created by mjmcc on 2/13/2017.
+ * Created by mjmcc on 3/13/2017.
  */
-public class GOLADGame extends GameState
+public class GOLADGame
 {
-	private GOLADGameVars gameVars;
+	public static final String TEST_PATH = "res/testing.txt";
+	public static final String SAVES_FOLDER_PTH = "res/golad/saves/";
+	public static final String SAVES_META_PTH = "res/golad/saves/game_saves.dpdb";
+	public static final String VARS_META_PTH = "res/golad/test_meta.gpdp";
 
-	private InputEvaluator inputEvaluator;
-	private GameRenderer gameRenderer;
+	public static final float FADE_TIME = 0.5f;
+	public static final Color BTN_STATIC_COL = new Color(0.9f, 0.0f, 0.0f, 0.8f);
+	public static final Color BTN_HOVER_COL = new Color(0.0f, 0.0f, 0.9f, 0.9f);
+	public static final Color BTN_PRESS_COLOR = new Color(0.0f, 0.0f, 0.4f, 0.9f);
 
-	private GameGui gameGui;
+	public List<GameState> states;
+	public GOLADLoadMenu LOAD_GAME;
+	public GOLADMainMenu MAIN_MENU;
+	public GOLADGenGame GEN_GAME;
+	public GOLADPlayInstance ACTIVE_GAME;
+	public GOLADEnd END_GAME;
 
-	private CellGrid grid;
-	private GridData currentGridData;
+	public GOLADGameSerializer gameSerializer = new GOLADGameSerializer();
+	public Map<String, GOLADSavedGame> gameSaves = new HashMap<>();
 
-	private List<Player> players;
-	private int playerOn;
+	public Player winningPlayer; // remove
 
-	private Turn currentTurn;
-
-	public GOLADGame(int width, int height, GOLADGameVars gameVars)
+	public GOLADGame()
 	{
-		this.gameVars = gameVars;
+		MAIN_MENU = new GOLADMainMenu(this);
+		LOAD_GAME = new GOLADLoadMenu(this);
+		GEN_GAME = new GOLADGenGame(this);
+		END_GAME = new GOLADEnd(this);
 
-		this.grid = new CellGrid(width, height);
-		this.gameGui = new GameGui();
-
-		this.inputEvaluator = new InputEvaluator(Engine.getInputManager(), grid, gameGui);
-		this.gameRenderer = new GameRenderer();
-
-		this.players = new ArrayList<>();
-		this.playerOn = -1;
+		GOLADMetaSerializer varsSerializer = new GOLADMetaSerializer();
+		varsSerializer.metaVarsFromFile(VARS_META_PTH, this);
+		
+		states = new ArrayList<>();
+		states.add(MAIN_MENU);
+		states.add(ACTIVE_GAME);
+		states.add(GEN_GAME);
+		states.add(END_GAME);
+		states.add(LOAD_GAME);
 	}
 
-	@Override
-	public void init()
+	public void reset()
 	{
-		grid.initGrid();
 
-		players.add(new UserPlayer("Shelb", new Vector3f(0, 0, 1), inputEvaluator));
-		players.add(new UserPlayer("Patrick", new Vector3f(0, 1, 0), inputEvaluator));
-		players.add(new UserPlayer("Matthew", new Vector3f(1, 0, 0), inputEvaluator));
-		currentTurn = new Turn(players.get(0), grid);
-
-		gameGui.generateGui(players);
-		String SCREEN_TWO = "screen_two";
-		GuiManager.switchScreen(SCREEN_TWO);
-		GuiManager.addSceneToScreen(SCREEN_TWO, gameGui);
-
-		GridGenerator.populateGrid(grid, players, 0.3f, 1);
-		currentGridData = grid.getGridData();
-		goToNextPlayer();
 	}
 
-	@Override
+	public void addGameSave(GOLADSavedGame gameSave)
+	{
+		gameSaves.put(gameSave.getSavePath(), gameSave);
+	}
+
+	public void removeGameSave(GOLADSavedGame save)
+	{
+		gameSaves.remove(save.getSavePath());
+	}
+
+	public List<GameState> getStates()
+	{
+		return states;
+	}
+
 	public void cleanUp()
 	{
-
+		GOLADMetaSerializer varsSerializer = new GOLADMetaSerializer();
+		varsSerializer.metaVarsToFile(this, VARS_META_PTH);
 	}
 
-	@Override
-	public void tick(GameStateManager stateManager)
-	{
-		Player player = players.get(playerOn);
-		player.constructTurn(currentTurn);
-		visualizeTurn(currentTurn);
-
-		if (currentTurn.isOver())
-		{
-			submitTurn(currentTurn);
-
-			runGridSim(currentGridData);
-			currentGridData = grid.getGridData();
-
-			checkPlayersEliminated(currentGridData.getPlayerOwnershipMap());
-
-			goToNextPlayer();
-
-			updateGui();
-
-			currentTurn.reset(players.get(playerOn));
-
-			if (checkEndState())
-			{
-				endGame(stateManager);
-			}
-		}
-	}
-
-	@Override
-	public void render(MasterRenderer renderer)
-	{
-		gameRenderer.render(renderer, this);
-	}
-
-	@Override
-	public void pause()
-	{
-
-	}
-
-	@Override
-	public void resume()
-	{
-		GuiManager.switchScreen("screen_two");
-	}
-
-	private void updateGui()
-	{
-		Map<Player, List<Cell>> playerOwnershipMap = currentGridData.getPlayerOwnershipMap();
-		for (Player player : players)
-		{
-			PlayerCard card = gameGui.getPlayerCard(player);
-			if (!player.isEliminated())
-			{
-				List<Cell> playerCells = playerOwnershipMap.get(player);
-				card.setCellCount(playerCells.size());
-			} else
-			{
-				card.setCellCount(0);
-			}
-		}
-	}
-
-	/**
-	 * Simulate life cycle among the entire grid, using the
-	 * Conway game of life ruleset
-	 */
-	public Map<Cell, CellEnvironmentData> runGridSim(GridData gridData)
-	{
-		Map<Cell, CellEnvironmentData> cellEnvironmentMap = gridData.getCellEnvironmentMap();
-
-		for (Cell cell : cellEnvironmentMap.keySet())
-		{
-			CellEnvironmentData enviroData = cellEnvironmentMap.get(cell);
-			runConwayRuleset(cell, enviroData);
-		}
-
-		return cellEnvironmentMap;
-	}
-
-	/**
-	 * Update the state of a specific cell, determined using the
-	 * Conway game of life rules
-	 */
-	private void runConwayRuleset(Cell cell, CellEnvironmentData enviroData)
-	{
-		Player majPlayer = enviroData.getMajPlayer();
-		int state = ConwayRules.testState(cell, enviroData);
-
-		// Death
-		if (state == ConwayRules.DIED)
-			grid.setCellState(cell, false, Player.NO_PLAYER, Cell.DEAD_COLOR);
-
-		// Birth
-		if (state == ConwayRules.BORN)
-			grid.setCellState(cell, true, majPlayer, majPlayer.getColor());
-	}
-
-	/**
-	 * Set the color of a cells dynamically as the
-	 * player is creating their turn. This is used to help the player
-	 * know where they are placing and removing cells.
-	 */
-	public void visualizeTurn(Turn t)
-	{
-		List<Pair<Integer, Integer>> additions = t.getCellAdditions();
-		List<Pair<Integer, Integer>> removals = t.getCellRemovals();
-
-		for (Pair<Integer, Integer> rem : removals)
-		{
-			Cell cell = grid.getCell(rem.getKey(), rem.getValue());
-			cell.setVisualColor(Cell.DEAD_COLOR);
-		}
-
-		for (Pair<Integer, Integer> add : additions)
-		{
-			Cell cell = grid.getCell(add.getKey(), add.getValue());
-			cell.setVisualColor(players.get(playerOn).getColor());
-		}
-
-	}
-
-	/**
-	 * Lock in/ Submit the current players turn.
-	 * After a turn is finished, the decisions are used to set
-	 * the grids cells.
-	 */
-	public void submitTurn(Turn turn)
-	{
-		Player player = players.get(playerOn);
-
-		for (Pair<Integer, Integer> index : turn.getCellRemovals())
-		{
-			grid.setCellState(index.getKey(), index.getValue(), false, Player.NO_PLAYER, Cell.DEAD_COLOR);
-			player.setBiomass(player.getBiomass() + 1);
-		}
-
-		for (Pair<Integer, Integer> index : turn.getCellAdditions())
-		{
-			grid.setCellState(index.getKey(), index.getValue(), true, player, player.getColor());
-			player.setBiomass(player.getBiomass() - 1);
-		}
-	}
-
-	/**
-	 * Move to the next player in the queue
-	 */
-	public void goToNextPlayer()
-	{
-		do playerOn = (playerOn + 1) % players.size();
-		while (players.get(playerOn).isEliminated());
-
-		gameGui.setPlayerCardHighlight(players.get(playerOn));
-	}
-
-	/**
-	 * Check if the game is over
-	 */
-	private boolean checkEndState()
-	{
-		int playersIn = 0;
-		for (Player player : players)
-			if (!player.isEliminated())
-				playersIn++;
-
-		return (playersIn == 1 || playersIn == 0);
-	}
-
-	/**
-	 * Check if any players need to be eliminated.
-	 * This method sets a flag in the player class to mark the player as
-	 * eliminated. Then they can be skipped in the gotoNextPlayer method.
-	 */
-	private void checkPlayersEliminated(Map<Player, List<Cell>> playerOwnershipMap)
-	{
-		for (Player p : players)
-			if (!playerOwnershipMap.containsKey(p))
-				p.setEliminated(true);
-	}
-
-	/**
-	 * End the game, decide a winner, show the end screen/ menu
-	 */
-	private void endGame(GameStateManager stateManager)
-	{
-		for (Player player : players)
-			if (!player.isEliminated())
-				gameVars.winningPlayer = player;
-
-		stateManager.setState(gameVars.END_GAME);
-	}
-
-	public CellGrid getGrid()
-	{
-		return grid;
-	}
-
-	public GameGui getGui()
-	{
-		return gameGui;
-	}
-
-	public GridData getGridData()
-	{
-		return currentGridData;
-	}
 }

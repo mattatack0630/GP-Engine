@@ -23,9 +23,9 @@ import java.util.List;
  */
 public class LimeData
 {
-	public static final String DEF_INFO_LOC = "defualt_info";
-	public static final String DEF_TEX_LOC = "defualt_texture";
-	public static final String DEF_NORM_LOC = "defualt_normal";
+	public static final String DEF_INFO_LOC = "res/textures/info_maps/defualt_info.png";
+	public static final String DEF_TEX_LOC = "res/textures/diffuse_maps/defualt_texture.png";
+	public static final String DEF_NORM_LOC = "res/textures/normal_maps/defualt_normal.png";
 
 	public List<Vector3f> vertices;
 	public List<Vector2f> texture;

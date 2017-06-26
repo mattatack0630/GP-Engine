@@ -1,11 +1,10 @@
 package utils.math;
 
 import org.lwjgl.opengl.Display;
-import physics.collidables.Plane;
 import rendering.DisplayManager;
-import utils.math.linear.vector.Vector;
 import utils.math.linear.vector.Vector2f;
 import utils.math.linear.vector.Vector3f;
+import utils.math.linear.vector.Vector4f;
 
 import java.util.Random;
 
@@ -49,13 +48,26 @@ public class Maths
 		return n;
 	}
 
+	public static float gaussian(float mean, float stdev)
+	{
+		return (float) (random.nextGaussian() * stdev + mean);
+
+	}
+
+	public static float gaussianMM(float min, float max)
+	{
+		return (float) (random.nextGaussian() * ((max - min) / 4.0f) + ((max + min) / 2.0f));
+	}
+
 	public static float random(float f0, float f1)
 	{
+
 		return map(random.nextFloat(), 0, 1, f0, f1);
 	}
 
 	public static int randomi(int i0, int i1)
 	{
+
 		return (int) map(random.nextFloat(), 0, 1, i0, i1);
 	}
 
@@ -66,6 +78,7 @@ public class Maths
 
 	public static float squared(float v)
 	{
+
 		return v * v;
 	}
 
@@ -113,6 +126,12 @@ public class Maths
 		return largest;
 	}
 
+	public static float abs(float v)
+	{
+
+		return v < 0 ? v * -1 : v;
+	}
+
 	/**
 	 * Get the next unique number in a static counter
 	 * variable, this can be useful in situations where you need defiantly
@@ -158,27 +177,25 @@ public class Maths
 				(((2f / ScreenSizeX) * pixleCoord.x()), ((2f / ScreenSizeY) * pixleCoord.y()));
 	}
 
-	public static Vector3f planeIntersect(Plane p, Vector3f a, Vector3f b)
-	{
-		Vector3f ba = Vector3f.sub(b, a, null);
-
-		float nDotA = Vector3f.dot(p.normal, a);
-		float nDotBA = Vector3f.dot(p.normal, ba);
-		if (nDotA == 0 || nDotBA == 0)
-			return null;
-
-		Vector3f vec = ba.scale((p.height - nDotA) / nDotBA);
-
-		return Vector3f.add(a, vec, null);
-	}
-
-	public static float distToPlane(Vector3f total, Plane facePlane)
-	{
-		return Vector3f.dot(facePlane.normal.normalize(), total) - facePlane.height;
-	}
-
-	public static Vector randomVec(float v0, float v1)
+	public static Vector3f randomVec(float v0, float v1)
 	{
 		return new Vector3f(random(v0, v1), random(v0, v1), random(v0, v1));
+	}
+
+	public static Vector2f randVec2d()
+	{
+		return new Vector2f(random(0, 1), random(0, 1)).normalize();
+
+	}
+
+	public static Vector3f randVec3d()
+	{
+		return new Vector3f(random(-1, 1), random(-1, 1), random(-1, 1)).normalize();
+
+	}
+
+	public static Vector4f randVec4d()
+	{
+		return new Vector4f(random(-1, 1), random(-1, 1), random(-1, 1), random(-1, 1)).normalize();
 	}
 }

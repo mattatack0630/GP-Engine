@@ -23,6 +23,7 @@ public class InputEvaluator
 	public Vector2f getInputCoord()
 	{
 		Vector2f mouseCoords = new Vector2f(inputManager.getGLCursorCoords());
+		mouseCoords.multElements(new Vector2f(1.0f, -1.0f));
 		mouseCoords.add(new Vector2f(1.0f));
 		mouseCoords.multElements(new Vector2f(0.5f / DisplayManager.getAspect(), 0.5f));
 		mouseCoords.multElements(new Vector2f(inputGrid.getWidth(), inputGrid.getHeight()));
@@ -48,5 +49,9 @@ public class InputEvaluator
 	public boolean pressingFinishTurn()
 	{
 		return gui.isFinishTurnClicked();
+	}
+
+	public void checkButtons()
+	{
 	}
 }

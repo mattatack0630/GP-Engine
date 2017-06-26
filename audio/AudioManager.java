@@ -27,7 +27,7 @@ public class AudioManager
 	 */
 	public AudioManager()
 	{
-		this.audioStreamer = new AudioStreamer(this);
+		this.audioStreamer = new AudioStreamer();
 		this.playingSources = new HashMap<>();
 	}
 
@@ -35,13 +35,20 @@ public class AudioManager
 	{
 		cleanUnusedResources();
 		audioStreamer.updateStreams();
+
+		Map<StreamSound, Source> endedStreams = audioStreamer.getEndedStreams();
+
+		for(StreamSound streamSound : endedStreams.keySet())
+			stop(streamSound, endedStreams.get(streamSound));
+
+		audioStreamer.clearEndedStreams();
 	}
 
 	/**
 	 * Check for unused sources and sounds and return their resources back to
 	 * the resource pool. This method find the state of a source (playing or not)
 	 * and handles cleaning up the source if it is not in used.
-	 * Called in the Engine update method.
+	 * Called in the Engine checkSpawn method.
 	 */
 	public void cleanUnusedResources()
 	{

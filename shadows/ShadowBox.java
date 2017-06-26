@@ -15,8 +15,8 @@ import utils.math.linear.vector.Vector3f;
  */
 public class ShadowBox
 {
-	private static final float SHADOW_BACK_AMOUNT = 40;
-	private static final float SHADOW_DIST = 200;
+	private static final float SHADOW_BACK_AMOUNT = 20;
+	private static final float SHADOW_DIST = 75;
 
 	private float shadowDistance;
 	private Matrix3f lightSpaceNBT;

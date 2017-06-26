@@ -9,8 +9,10 @@ import java.util.List;
  */
 public class SerialObject extends SerialContainer
 {
+	private List<SerialObject> objects;
 	private List<SerialField> fields;
 	private List<SerialArray> arrays;
+
 
 	public SerialObject(String name)
 	{
@@ -18,6 +20,7 @@ public class SerialObject extends SerialContainer
 		this.type = SerialContainer.OBJECT;
 		this.fields = new ArrayList<>();
 		this.arrays = new ArrayList<>();
+		this.objects = new ArrayList<>();
 	}
 
 	public void addField(SerialField field)
@@ -28,6 +31,19 @@ public class SerialObject extends SerialContainer
 	public void addArray(SerialArray array)
 	{
 		this.arrays.add(array);
+	}
+
+	public void addObject(SerialObject obj)
+	{
+		this.objects.add(obj);
+	}
+
+	public SerialObject getObject(String name)
+	{
+		for (SerialObject o : objects)
+			if (o.getName().equals(name))
+				return o;
+		return null;
 	}
 
 	public SerialField getField(String name)
@@ -41,7 +57,7 @@ public class SerialObject extends SerialContainer
 	public SerialArray getArray(String name)
 	{
 		for (SerialArray a : arrays)
-			if (a.getName().equals(name))
+			if (a.getName().compareTo(name) == 0)
 				return a;
 		return null;
 	}
@@ -53,13 +69,17 @@ public class SerialObject extends SerialContainer
 				(Short.BYTES) +    // NameLetterCount
 				(name.length() * Character.BYTES) +    // NameData
 				(Short.BYTES) +    // FieldCount
-				(Short.BYTES); // ArrayCount
+				(Short.BYTES) +    // ArrayCount
+				(Short.BYTES);     // ObjCount
 
 		for (SerialField field : fields)
 			c += field.calcLength();
 
 		for (SerialArray array : arrays)
 			c += array.calcLength();
+
+		for (SerialObject obj : objects)
+			c += obj.calcLength();
 
 		return c;
 	}
@@ -90,6 +110,13 @@ public class SerialObject extends SerialContainer
 		// Write Fields
 		for (SerialArray array : arrays)
 			array.serialize(buffer);
+
+		//Write fieldSize
+		buffer.putShort((short) objects.size());
+
+		// Write Objects
+		for (SerialObject object : objects)
+			object.serialize(buffer);
 	}
 
 	@Override
@@ -121,6 +148,14 @@ public class SerialObject extends SerialContainer
 				arrays.add(o);
 			}
 
+			short objectCount = buffer.getShort();
+			for (int i = 0; i < objectCount; i++)
+			{
+				SerialObject o = new SerialObject("");
+				o.deserialize(buffer);
+				objects.add(o);
+			}
+
 			this.name = name;
 		}
 	}
@@ -134,17 +169,23 @@ public class SerialObject extends SerialContainer
 			s += "\t";
 		s += "Object: " + name + "\n";
 
-		for (int i = 0; i < tc; i++)
+		for (int i = 0; i < tc + 1; i++)
 			s += "\t";
 		s += "Field Count: " + fields.size() + "\n";
 		for (SerialField f : fields)
-			s += f.testString(tc + 1);
+			s += f.testString(tc + 2);
 
-		for (int i = 0; i < tc; i++)
+		for (int i = 0; i < tc + 1; i++)
 			s += "\t";
 		s += "Array Count: " + arrays.size() + "\n";
 		for (SerialArray f : arrays)
-			s += f.testString(tc + 1);
+			s += f.testString(tc + 2);
+
+		for (int i = 0; i < tc + 1; i++)
+			s += "\t";
+		s += "Object Count: " + objects.size() + "\n";
+		for (SerialObject f : objects)
+			s += f.testString(tc + 2);
 
 		return s;
 	}

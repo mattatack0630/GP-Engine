@@ -165,7 +165,7 @@ public class Align
 
 		if (result == null)
 		{
-			System.err.println("Align-Format Exception : " + src + " is not a valid inputFbo");
+			System.err.println("Align-Format Exception : " + src + " is not a valid input");
 			return CENTER;
 		}
 

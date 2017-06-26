@@ -16,6 +16,7 @@ public class PostProcessor
 	 */
 	public static PostProcessingShader contrastShader = new PostProcessingShader("ContrastShiftV11.fp");
 	public static PostProcessingShader colorClipShader = new PostProcessingShader("ColorClipV11.fp");
+	public static PostProcessingShader borderShader = new PostProcessingShader("BorderlandsV11.fp");
 	public static PostProcessingShader identityShader = new PostProcessingShader("IdentityV11.fp");
 	public static PostProcessingShader additionShader = new PostProcessingShader("AdditionV11.fp");
 	public static PostProcessingShader colorShader = new PostProcessingShader("ColorShiftV11.fp");
@@ -26,6 +27,7 @@ public class PostProcessor
 	/**
 	 * Affects
 	 */
+	public static BorderlandsEffect borderlandsEffect = new BorderlandsEffect();
 	public static ColorShiftAffect colorShiftAffect = new ColorShiftAffect();
 	public static ColorClipAffect colorClipAffect = new ColorClipAffect();
 	public static IdentityAffect identityAffect = new IdentityAffect();
@@ -48,7 +50,7 @@ public class PostProcessor
 
 	public void renderToDisplay(FboObject finalScreen)
 	{
-		identityAffect.processAffect(finalScreen);
+		identityAffect.processAffect(finalScreen, FboObject.SCREEN);
 	}
 
 	public void cleanUp()
@@ -62,10 +64,12 @@ public class PostProcessor
 		blurShader.cleanUp();
 		DOFShader.cleanUp();
 
+		borderlandsEffect.cleanAffect();
 		colorShiftAffect.cleanAffect();
 		colorClipAffect.cleanAffect();
 		identityAffect.cleanAffect();
 		invertAffect.cleanAffect();
+		bloomAffect.cleanAffect();
 		blurAffect.cleanAffect();
 	}
 }

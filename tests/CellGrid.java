@@ -92,4 +92,8 @@ public class CellGrid
 		return width;
 	}
 
+	public Cell[][] getCells()
+	{
+		return cells;
+	}
 }

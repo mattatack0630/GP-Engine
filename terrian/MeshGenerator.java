@@ -1,6 +1,7 @@
 package terrian;
 
-import utils.VaoObject;
+import org.lwjgl.opengl.GL15;
+import rendering.VaoObject;
 import utils.math.Maths;
 import utils.math.PseudoNoise;
 import utils.math.linear.vector.Vector2f;
@@ -74,11 +75,11 @@ public class MeshGenerator
 		loadArrays(vertices, positions, normals, tangents, textureCoords);
 
 		test.bind();
-		test.update(positions, VaoObject.POSITIONS);
-		test.update(normals, VaoObject.NORMALS);
-		test.update(tangents, VaoObject.TANGENTS);
-		test.update(textureCoords, VaoObject.TEXTURE_COORDS);
-		test.updateIndexArray(indices);
+		test.update(positions, VaoObject.POSITIONS, GL15.GL_STATIC_DRAW);
+		test.update(normals, VaoObject.NORMALS, GL15.GL_STATIC_DRAW);
+		test.update(tangents, VaoObject.TANGENTS, GL15.GL_STATIC_DRAW);
+		test.update(textureCoords, VaoObject.TEXTURE_COORDS, GL15.GL_STATIC_DRAW);
+		test.updateIndexArray(indices, GL15.GL_STATIC_DRAW);
 		test.unbind();
 
 		return test;//VaoLoader.loadModel(positions, textureCoords, normals, tangents, indices);

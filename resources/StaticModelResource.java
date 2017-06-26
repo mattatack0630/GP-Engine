@@ -5,19 +5,15 @@ import models.StaticModel;
 import parsing.lime.LimeData;
 import parsing.lime.LimeModelBuilder;
 import parsing.lime.LimeParser;
-import utils.VaoObject;
+import rendering.VaoObject;
 
 /**
  * Created by mjmcc on 11/22/2016.
  */
 public class StaticModelResource extends Resource
 {
-	public static final String DIFFUSE_FOLDER = "diffuse_maps/";
-	public static final String NORMAL_FOLDER = "normal_maps/";
-	public static final String INFO_FOLDER = "info_maps/";
-
-	public static final String MODELS_FOLDER = "res/models/static_models/";
-	public static final String MODEL_EXT = ".lime";
+	private LimeData limeData;
+	private LimeModelBuilder modelBuilder;
 
 	public StaticModel model;
 	public TextureResource textureMapRes;
@@ -26,16 +22,20 @@ public class StaticModelResource extends Resource
 
 	public StaticModelResource(String name, String location)
 	{
-		super(name, MODELS_FOLDER + location + MODEL_EXT);
+		super(name, location);
+	}
+
+	@Override
+	public void preloadOnDaemon()
+	{
+		//Parse the lime file
+		limeData = LimeParser.parseLimeFile(location);
+		modelBuilder = new LimeModelBuilder(limeData);
 	}
 
 	@Override
 	public void load(ResourceManager resManager)
 	{
-		// Parse the lime file
-		LimeData data = LimeParser.parseLimeFile(location);
-		LimeModelBuilder modelBuilder = new LimeModelBuilder(data);
-
 		// Build an static vaoObject VAO
 		VaoObject staticVao = modelBuilder.buildStaticVao();
 
@@ -43,15 +43,22 @@ public class StaticModelResource extends Resource
 		RenderMaterial material = modelBuilder.buildMaterial();
 
 		// Change naming later so they can be found in map easier
-		textureMapRes = resManager.loadResource(new TextureResource(data.textureMapFile.getName(),
-				DIFFUSE_FOLDER + data.textureMapFile.getPath()));
-		normalMapRes = resManager.loadResource(new TextureResource(data.normalMapFile.getName(),
-				NORMAL_FOLDER + data.normalMapFile.getPath()));
-		infoMapRes = resManager.loadResource(new TextureResource(data.specMapFile.getName(),
-				INFO_FOLDER + data.specMapFile.getPath()));
+		textureMapRes = resManager.directLoadResource(new TextureResource(limeData.textureMapFile.getName(),
+				limeData.textureMapFile.getPath()));
+		normalMapRes = resManager.directLoadResource(new TextureResource(limeData.normalMapFile.getName(),
+				limeData.normalMapFile.getPath()));
+		infoMapRes = resManager.directLoadResource(new TextureResource(limeData.specMapFile.getName(),
+				limeData.specMapFile.getPath()));
 
 		// Build textured vaoObject
-		model = new StaticModel(staticVao, material, data.getBoundingBox(), textureMapRes, normalMapRes, infoMapRes);
+		model = new StaticModel(staticVao, material, limeData.getBoundingBox(), textureMapRes, normalMapRes, infoMapRes);
+	}
+
+	@Override
+	public void unload()
+	{
+		// textures will be cleaned in the Res manager by themselves
+		model.getVaoObject().clean();
 	}
 
 	@Override
@@ -60,12 +67,6 @@ public class StaticModelResource extends Resource
 		id = model.getVaoObject().getId();
 	}
 
-	@Override
-	public void cleanUp()
-	{
-		// textures will be cleaned in the Res manager by themselves
-		model.getVaoObject().clean();
-	}
 
 	public StaticModel getModel()
 	{

@@ -1,11 +1,13 @@
 package rendering.fbo;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.*;
+import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
 import rendering.Color;
 import utils.math.linear.vector.Vector2f;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 /**
@@ -55,42 +57,52 @@ public class FboObject
 		frameBuffer = createFrameBuffer();
 	}
 
-	public FboObject(int width, int height, int attachmentBits)
+	protected int createFrameBuffer()
 	{
-		this(width, height);
+		//generate name for frame buffer
+		int frameBuffer = GL30.glGenFramebuffers();
+		//create the framebuffer
+		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, frameBuffer);
+		//init draw buffer to none
+		GL20.glDrawBuffers(GL11.GL_NONE);
 
-		addAttachments(attachmentBits);
+		return frameBuffer;
 	}
 
 	public void finishSetup()
 	{
+
 		resetDrawBuffers();
 	}
 
-	public void addAttachments(int attachBits)
+	protected void resetDrawBuffers()
 	{
-		if ((RENDER_BUFFER & attachBits) == RENDER_BUFFER)
-		{
-			colorAttachments[colorsAttached] = new BufferAttachment(createRenderBuffer());
-			colorsAttached++;
-		}
+		bindFrameBuffer();
+		IntBuffer drawBuffs = BufferUtils.createIntBuffer(2);
 
-		if ((COLOR_TEXTURE & attachBits) == COLOR_TEXTURE)
-		{
-			colorAttachments[colorsAttached] = new TextureAttachment(createTexture());
-			colorsAttached++;
-		}
+		//for (int i = 0; i < colorsAttached; i++)
+		//	drawBuffs.put(GL30.GL_COLOR_ATTACHMENT0 + i);
+		drawBuffs.put(GL30.GL_COLOR_ATTACHMENT0);
+		drawBuffs.put(GL30.GL_COLOR_ATTACHMENT1);
+		drawBuffs.flip();
+		GL20.glDrawBuffers(drawBuffs);
 
-		if ((DEPTH_TEXTURE & attachBits) == DEPTH_TEXTURE)
-			depthAttachments = new TextureAttachment(createDepthTexture());
-
-		if ((DEPTH_BUFFER & attachBits) == DEPTH_BUFFER)
-			depthAttachments = new BufferAttachment(createDepthBuffer());
+		unbindFrameBuffer();
 	}
 
-	public int getFrameBuffer()
+	public void addColorAttachment(Attachment attachment)
 	{
-		return frameBuffer;
+		colorAttachments[colorsAttached] = attachment;
+		attachment.setId(attachment.generate());
+		attachment.attachTo(this);
+		colorsAttached++;
+	}
+
+	public void setDepthAttachment(Attachment attachment)
+	{
+		this.depthAttachments = attachment;
+		attachment.setId(attachment.generate());
+		attachment.attachTo(this);
 	}
 
 	public void bindFrameBuffer()
@@ -115,86 +127,12 @@ public class FboObject
 		boundFbo = 0;
 	}
 
-	protected int createFrameBuffer()
+	public void clear(Color clearColor)
 	{
-		//generate name for frame buffer
-		int frameBuffer = GL30.glGenFramebuffers();
-		//create the framebuffer
-		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, frameBuffer);
-		//init draw buffer to none
-		GL20.glDrawBuffers(GL11.GL_NONE);
-
-		return frameBuffer;
-	}
-
-	public int getDepthAttachment()
-	{
-		return depthAttachments.getId();
-	}
-
-	public int getColorAttachment(int i)
-	{
-		return colorAttachments[i].getId();
-	}
-
-	public int createRenderBuffer()
-	{
-		return 0;
-	}
-
-	protected int createDepthBuffer()
-	{
-		bindFrameBuffer();
-		int depthBuffer = GL30.glGenRenderbuffers();
-		GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, depthBuffer);
-		GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL14.GL_DEPTH_COMPONENT24, (int) dimensions.x(), (int) dimensions.y());
-		GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER, depthBuffer);
-		return depthBuffer;
-	}
-
-	protected int createTexture()
-	{
-		int texture = GL11.glGenTextures();
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
-		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGB, (int) dimensions.x(), (int) dimensions.y(),
-				0, GL11.GL_RGB, GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-		GL32.glFramebufferTexture(GL30.GL_FRAMEBUFFER, (GL30.GL_COLOR_ATTACHMENT0 + colorsAttached), texture, 0);
-		return texture;
-	}
-
-	protected int createDepthTexture()
-	{
-		int texture = GL11.glGenTextures();
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
-
-		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL14.GL_DEPTH_COMPONENT24, (int) dimensions.x(), (int) dimensions.y(),
-				0, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, (ByteBuffer) null);
-
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
-
-		GL32.glFramebufferTexture(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, texture, 0);
-
-		return texture;
-	}
-
-	protected void resetDrawBuffers()
-	{
-		bindFrameBuffer();
-		IntBuffer drawBuffs = BufferUtils.createIntBuffer(2);
-
-		//for (int i = 0; i < colorsAttached; i++)
-		//	drawBuffs.put(GL30.GL_COLOR_ATTACHMENT0 + i);
-		drawBuffs.put(GL30.GL_COLOR_ATTACHMENT0);
-		drawBuffs.put(GL30.GL_COLOR_ATTACHMENT1);
-		drawBuffs.flip();
-		GL20.glDrawBuffers(drawBuffs);
-
-		unbindFrameBuffer();
+		GL11.glClearColor(clearColor.getR(), clearColor.getG(), clearColor.getB(), clearColor.getA());
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+		GL11.glEnable(GL11.GL_DEPTH_TEST);
+		GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 	}
 
 	public void cleanUp()
@@ -212,16 +150,28 @@ public class FboObject
 
 	}
 
+	// Getters and Setters
 	public Vector2f getDimensions()
 	{
+
 		return dimensions;
 	}
 
-	public void clear(Color clearColor)
+	public int getDepthAttachment()
 	{
-		GL11.glClearColor(clearColor.getR(), clearColor.getG(), clearColor.getB(), clearColor.getA());
-		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-		GL11.glEnable(GL11.GL_DEPTH_TEST);
-		GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
+
+		return depthAttachments.getId();
+	}
+
+	public int getColorAttachment(int i)
+	{
+
+		return colorAttachments[i].getId();
+	}
+
+	public int getColorAttachmentAmt()
+	{
+
+		return colorsAttached;
 	}
 }

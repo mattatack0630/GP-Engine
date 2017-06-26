@@ -1,17 +1,18 @@
 package rendering.renderers;
 
 import engine.Engine;
+import gui.AnimatedGuiTexture;
+import gui.GuiRenderable;
 import gui.GuiTexture;
-import gui.Text.GuiText;
-import models.SpriteSheet;
+import gui.text.GuiText;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 import particles.Particle;
 import particles.ParticleRenderData;
 import rendering.*;
 import rendering.camera.Camera;
-import rendering.fbo.FboObject;
-import rendering.fbo.MSFboObject;
+import rendering.fbo.*;
 import rendering.post.CubeMap;
 import rendering.post.PostAffectInstance;
 import rendering.post.PostProcessor;
@@ -21,10 +22,7 @@ import utils.math.geom.AABB;
 import utils.math.linear.matrix.Matrix4f;
 import utils.math.linear.vector.Vector3f;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MasterRenderer
 {
@@ -38,15 +36,16 @@ public class MasterRenderer
 	// MultiSampled screen fbo, for anti-aliasing affect
 	private MSFboObject msScreen;
 
-	// Main screen texture fbo, used to apply post processing before rendering to screen
-	private FboObject screen;
+	// Main screen texture fbos, used to apply post processing before rendering to screen
+	private FboObject screen0;
+	private FboObject screen1;
 
 	// Picking screen used in picking Manager
-	private FboObject pickingFbo;
+	private FboObject objectFbo;
 
 	// Shadow Map fbo to render a shadow map
 	public static final boolean RENDER_SHADOWS = false;
-	public static final int SHADOW_MAP_SIZE = 1024;
+	public static final int SHADOW_MAP_SIZE = 512;
 	private ShadowMapRenderer shadowMapRenderer;
 	public FboObject shadowFbo;
 
@@ -63,33 +62,43 @@ public class MasterRenderer
 	private Sprite2DRenderer spriteRenderer = new Sprite2DRenderer();
 	private CubeMapRenderer cubeMapRenderer = new CubeMapRenderer();
 	private ModelRenderer modelRenderer = new ModelRenderer();
-	private GuiRenderer GuiRenderer = new GuiRenderer();
+	private GuiRenderer guiRenderer = new GuiRenderer();
 
 	// Renderable Object lists
 	private List<SpriteRenderObject> spriteRenderables = new ArrayList<>();
 	private List<StaticRenderObject> staticRenderables = new ArrayList<>();
 	private List<AnimatedRenderObject> animatedRenderables = new ArrayList<>();
-
-	private Map<SpriteSheet, List<ParticleRenderData>> particles = new HashMap<>();
+	private Map<Integer, List<ParticleRenderData>> particles = new HashMap<>();
 
 	private List<PostAffectInstance> postAffects = new ArrayList<>();
-	private List<GuiTexture> guiTextures = new ArrayList<>();
-	private List<GuiText> guiFont = new ArrayList<>();
+	private LinkedList<GuiRenderable> guiRenderables = new LinkedList<>();
 	private List<Light> lights = new ArrayList<>();
 
 	public MasterRenderer(Camera camera)
 	{
-		msScreen = new MSFboObject(Display.getWidth(), Display.getHeight(), FboObject.DEPTH_COLOR_BUFFERS);
-		msScreen.addAttachments(FboObject.RENDER_BUFFER);
+		msScreen = new MSFboObject(Display.getWidth(), Display.getHeight());
+		msScreen.addColorAttachment(new ColorBufferAttachmentMS(msScreen.getDimensions()));
+		msScreen.addColorAttachment(new ColorBufferAttachmentMS(msScreen.getDimensions()));
+		msScreen.setDepthAttachment(new DepthBufferAttachmentMS(msScreen.getDimensions()));
 		msScreen.finishSetup();
 
-		screen = new FboObject(Display.getWidth(), Display.getHeight(), FboObject.DEPTH_COLOR_TEXTURES);
-		screen.finishSetup();
+		screen0 = new FboObject(Display.getWidth(), Display.getHeight());
+		screen0.addColorAttachment(new ColorTextureAttachment(screen0.getDimensions()));
+		screen0.setDepthAttachment(new DepthTextureAttachment(screen0.getDimensions()));
+		screen0.finishSetup();
 
-		pickingFbo = new FboObject(Display.getWidth(), Display.getHeight(), FboObject.COLOR_TEXTURE);
-		pickingFbo.finishSetup();
+		screen1 = new FboObject(Display.getWidth(), Display.getHeight());
+		screen1.addColorAttachment(new ColorTextureAttachment(screen1.getDimensions()));
+		screen1.setDepthAttachment(new DepthTextureAttachment(screen1.getDimensions()));
+		screen1.finishSetup();
 
-		shadowFbo = new FboObject(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, FboObject.DEPTH_TEXTURE);
+		objectFbo = new FboObject(Display.getWidth(), Display.getHeight());
+		objectFbo.addColorAttachment(new ColorTextureAttachment(objectFbo.getDimensions()));
+		objectFbo.finishSetup();
+
+		shadowFbo = new FboObject(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+		shadowFbo.addColorAttachment(new ColorTextureAttachment(shadowFbo.getDimensions(), GL30.GL_RG32F));
+		shadowFbo.setDepthAttachment(new DepthTextureAttachment(shadowFbo.getDimensions()));
 		shadowFbo.finishSetup();
 
 		shadowMapRenderer = new ShadowMapRenderer(shadowFbo);
@@ -107,9 +116,15 @@ public class MasterRenderer
 	public void render()
 	{
 		// Render shadow map
-		if (RENDER_SHADOWS)
-			shadowMapRenderer.render(renderCamera, lights.get(0)); // setElements sun later
+		if (RENDER_SHADOWS) shadowMapRenderer.render(renderCamera, lights.get(0)); // set sun later
 		Matrix4f shadowMapConversion = shadowMapRenderer.getConversionMat();
+
+		/*
+		postProcessor.prepare();
+		PostProcessor.blurAffect.setAffectVars(.2f);
+		PostProcessor.blurAffect.processAffect(shadowFbo, shadowFbo);
+		postProcessor.finish();
+		*/
 
 		// Get/Generate environment map(s)
 		CubeTextureResource environmentRes = Engine.getResourceManager().getResource("sky");
@@ -125,30 +140,28 @@ public class MasterRenderer
 		particleRenderer.renderParticles(particles, renderCamera);
 
 		// Resolves msFbo and copies it to the screen texture
-		msScreen.resolveTo(0, screen);
+		msScreen.resolveTo(0, screen0);
 
 		// Resolves msFbo and copies picking attachment to the picking texture
-		msScreen.resolveTo(1, pickingFbo);
+		msScreen.resolveTo(1, objectFbo);
 
 		// Do Post processing on screen texture
 		doPostProcessing();
 
 		// Render gui
-		GuiRenderer.renderTextures(guiTextures);
-		GuiRenderer.renderGuiText(guiFont);
+		guiRenderer.renderGuis(guiRenderables);
 
 		// Clear lists for next render, possibly change later?
+		postAffects.clear();
 		animatedRenderables.clear();
 		staticRenderables.clear();
 		spriteRenderables.clear();
-		guiTextures.clear();
-		postAffects.clear();
+		guiRenderables.clear();
 		particles.clear();
-		guiFont.clear();
 		lights.clear();
 
-		if (Engine.getTime() % 1.0f < 0.01f)
-			System.out.println("Rendered : " + verticesRendered + " vertices, " + modelsRendered + " models");
+		//if (Engine.getTime() % 1.0f < 0.01f)
+		//	System.out.println("Rendered : " + verticesRendered + " vertices, " + modelsRendered + " models");
 		verticesRendered = 0;
 		modelsRendered = 0;
 	}
@@ -164,23 +177,29 @@ public class MasterRenderer
 
 	private void doPostProcessing()
 	{
-
 		postProcessor.prepare();
-		FboObject mutableScreen = screen;
+
+		FboObject inScreen = screen1;
+		FboObject outScreen = screen0;
 
 		for (PostAffectInstance instance : postAffects)
-			mutableScreen = instance.callAffect(mutableScreen);
+		{
+			inScreen = inScreen == screen0 ? screen1 : screen0;
+			outScreen = outScreen == screen0 ? screen1 : screen0;
+			instance.callAffect(inScreen, outScreen);
+		}
 
-		postProcessor.renderToDisplay(mutableScreen);
+		postProcessor.renderToDisplay(outScreen);
 		postProcessor.finish();
 	}
 
 	public void cleanUp()
 	{
-		screen.cleanUp();
+		screen0.cleanUp();
+		screen1.cleanUp();
 		msScreen.cleanUp();
-		pickingFbo.cleanUp();
-		GuiRenderer.cleanUp();
+		objectFbo.cleanUp();
+		guiRenderer.cleanUp();
 		modelRenderer.cleanUp();
 		spriteRenderer.cleanUp();
 		particleRenderer.cleanUp();
@@ -193,13 +212,52 @@ public class MasterRenderer
 
 	public void processParticle(Particle p)
 	{
-		List<ParticleRenderData> batch = particles.get(p.getParticleTexture());
+		List<ParticleRenderData> batch = particles.get(p.getTextureId());
+
 		if (batch == null)
 		{
 			batch = new ArrayList<>();
-			particles.put(p.getParticleTexture(), batch);
+			particles.put(p.getTextureId(), batch);
 		}
+
 		batch.add(p.getRenderData());
+	}
+
+	public void processGuiText(GuiText text)
+	{
+
+		Sorter.dynamicSort(guiRenderables, text);
+	}
+
+	public void processLightSource(Light light)
+	{
+		lights.add(light);
+
+	}
+
+	public void processGuiTexture(GuiTexture guiTexture)
+	{
+
+		Sorter.dynamicSort(guiRenderables, guiTexture);
+	}
+
+
+	public void processAnimatedGuiTexture(AnimatedGuiTexture guiTexture)
+	{
+		guiTexture.updateTexture();
+		processGuiTexture(guiTexture.getTexture());
+	}
+
+	public void processPostAffect(PostAffectInstance instance)
+	{
+		postAffects.add(instance);
+
+	}
+
+	public void processSpriteModel(SpriteRenderObject renderObject)
+	{
+		spriteRenderables.add(renderObject);
+
 	}
 
 	public void processStaticModel(StaticRenderObject renderObject)
@@ -238,38 +296,9 @@ public class MasterRenderer
 			shadowMapRenderer.addShadowable(renderObject);
 	}
 
-	public void processSpriteModel(SpriteRenderObject renderObject)
+	public FboObject getObjectFbo()
 	{
-		spriteRenderables.add(renderObject);
-	}
-
-	public void processGuiTexture(GuiTexture guiTexture)
-	{
-		guiTextures.add(guiTexture);
-	}
-
-	public void processPostAffect(PostAffectInstance instance)
-	{
-		postAffects.add(instance);
-	}
-
-	public void processLightSource(Light light)
-	{
-		lights.add(light);
-	}
-
-	public void processGuiText(GuiText text)
-	{
-		guiFont.add(text);
-	}
-
-	/**
-	 * Getters and Setters
-	 **/
-
-	public FboObject getPickingFbo()
-	{
-		return pickingFbo;
+		return objectFbo;
 	}
 
 	public void setRenderCamera(Camera renderCamera)

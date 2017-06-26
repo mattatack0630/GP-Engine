@@ -17,13 +17,10 @@ public class CameraLinearKeyController extends CameraKeyController
 	@Override
 	public void translate(Vector3f translation)
 	{
-		Vector3f rot = new Vector3f(camera.getRotation());
-		rot.negate();
-
+		Vector3f rot = new Vector3f(camera.getRotation()).negate();
 		translation = LinearAlgebra.rotateVector(translation, new Euler(rot), null);
-		//Maths.mulMatrixVector(Maths.buildRotMatrix(rot), translation);
-
 		Vector3f.add(camera.getPosition(), translation, translation);
+
 		camera.setPosition(translation);
 	}
 

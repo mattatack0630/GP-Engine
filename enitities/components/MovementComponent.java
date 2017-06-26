@@ -4,6 +4,7 @@ import enitities.Entity;
 import utils.math.Transform;
 import utils.math.linear.LinearAlgebra;
 import utils.math.linear.matrix.Matrix4f;
+import utils.math.linear.rotation.Euler;
 import utils.math.linear.vector.Vector3f;
 
 /**
@@ -18,8 +19,12 @@ public class MovementComponent extends EntityComponent
 	public MovementComponent(Entity parent)
 	{
 		super(parent);
-		position = new Vector3f();
-		rotation = new Vector3f();
+		position = parent.getPosition();
+
+		// A little long winded
+		Euler erot = new Euler();
+		erot.fromAxisAngle(parent.getRotation().toAxisAngle());
+		rotation = erot.asVector();
 	}
 
 	public void setRotation(Vector3f r)
@@ -71,5 +76,15 @@ public class MovementComponent extends EntityComponent
 		Matrix4f.translate(matrix, position, matrix);
 
 		return matrix;
+	}
+
+	public Vector3f getPosition()
+	{
+		return position;
+	}
+
+	public Vector3f getRotation()
+	{
+		return rotation;
 	}
 }

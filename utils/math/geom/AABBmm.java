@@ -18,6 +18,14 @@ public class AABBmm extends AABB
 		this.extend = new Vector3f();
 	}
 
+	public AABBmm(AABB src)
+	{
+		this.min = new Vector3f(src.getMin());
+		this.max = new Vector3f(src.getMax());
+		this.center = new Vector3f();
+		this.extend = new Vector3f();
+	}
+
 	@Override
 	public Vector3f getMin()
 	{

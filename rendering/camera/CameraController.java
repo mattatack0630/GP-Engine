@@ -14,5 +14,5 @@ public abstract class CameraController
 		this.camera = camera;
 	}
 
-	public abstract void tick();
+	public abstract void update();
 }

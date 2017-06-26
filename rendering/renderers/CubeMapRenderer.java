@@ -1,11 +1,11 @@
 package rendering.renderers;
 
 import org.lwjgl.opengl.GL11;
+import rendering.VaoObject;
 import rendering.camera.Camera;
 import rendering.post.CubeMap;
 import shaders.CubeMapShader;
 import utils.VaoLoader;
-import utils.VaoObject;
 
 /**
  * Created by mjmcc on 11/26/2016.
@@ -58,7 +58,7 @@ public class CubeMapRenderer
 			SIZE, -SIZE, SIZE
 	};
 
-	private static final VaoObject CUBE_VAO = VaoLoader.loadModel(3, CUBE_POSITIONS);
+	private static final VaoObject CUBE_VAO = VaoLoader.loadModel(3, CUBE_POSITIONS, 36);
 
 	private CubeMapShader cubeMapShader;
 

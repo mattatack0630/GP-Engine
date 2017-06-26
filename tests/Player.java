@@ -7,7 +7,7 @@ import utils.math.linear.vector.Vector3f;
  */
 public abstract class Player
 {
-	public static Player NO_PLAYER = new Player("NONE", new Vector3f(-1))
+	public static Player NO_PLAYER = new Player("NONE", new Vector3f(0.1f))
 	{
 		@Override
 		public boolean constructTurn(Turn turn)
@@ -59,5 +59,15 @@ public abstract class Player
 	public boolean isEliminated()
 	{
 		return isEliminated;
+	}
+
+	public void setColor(Vector3f color)
+	{
+		this.color.set(color.x(), color.y(), color.z());
+	}
+
+	public void setName(String name)
+	{
+		this.name = name;
 	}
 }

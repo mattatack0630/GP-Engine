@@ -65,7 +65,7 @@ public class ModelRenderer
 		staticShader.stop();
 	}
 
-	public void renderStaticModelsDirty(List<StaticRenderObject> renderObjects, Camera camera)
+	public void renderStaticModelsLQ(List<StaticRenderObject> renderObjects, Camera camera)
 	{
 		staticShader.start();
 
@@ -131,7 +131,7 @@ public class ModelRenderer
 	{
 		staticShader.loadTransformationMatrix(modelInstance.getTransformMatrix());
 		staticShader.loadDebugColor(modelInstance.getDebugColor());
-		staticShader.loadVector2("pickingId", modelInstance.getPickingId());
+		staticShader.loadVector2("pickingId", modelInstance.getObjectId());
 	}
 
 
@@ -162,8 +162,8 @@ public class ModelRenderer
 		animationShader.stop();
 	}
 
-	public void renderAnimatedModelsDirty(List<AnimatedRenderObject> renderObjects, List<Light> lights, CubeMap environmentMap,
-										  Camera camera, FboObject shadowMap, Matrix4f shadowMapConversion)
+	public void renderAnimatedModelsLQ(List<AnimatedRenderObject> renderObjects, List<Light> lights, CubeMap environmentMap,
+									   Camera camera, FboObject shadowMap, Matrix4f shadowMapConversion)
 	{
 		animationShader.start();
 
@@ -228,7 +228,7 @@ public class ModelRenderer
 		ArrayList<Matrix4f> boneMats = model.getAnimationData().getBoneAnimationMats(renderData.animationOn, renderData.time);
 
 		animationShader.loadDebugColor(renderData.tempColor);
-		animationShader.loadVector2("pickingId", renderData.getPickingId());
+		animationShader.loadVector2("pickingId", renderData.getObjectId());
 
 		animationShader.loadTransformationMatrix(renderData.getTransformMatrix());
 		animationShader.loadBoneMatrices(boneMats);

@@ -1,44 +1,50 @@
 package resources;
 
-import gui.Text.Font;
-import gui.Text.FontLoader;
+import gui.text.Font;
+import gui.text.FontLoader;
 
 /**
  * Created by mjmcc on 11/22/2016.
  */
 public class FontResource extends Resource
 {
-
-	private static final String FONT_FILE_FOLDER = "res/fonts/";
-	private static final String FONT_SHEET_FOLDER = "font_sheets/";
-	private static final String FONT_EXTENSION = ".fnt";
-
 	private Font font;
+	private String fontDataLocation;
+	private String fontTextureLocation;
 
-	public FontResource(String name, String location)
+	public FontResource(String name, String fontDataLocation, String fontSheetLocation)
 	{
-		super(name, location);
+		super(name, fontDataLocation);
+		this.fontDataLocation = fontDataLocation;
+		this.fontTextureLocation = fontSheetLocation;
+	}
+
+	@Override
+	public void preloadOnDaemon()
+	{
+
 	}
 
 	@Override
 	public void load(ResourceManager resManager)
 	{
 		font = new Font(name,
-				resManager.loadResource(new TextureResource(name + "_fontsheet", FONT_SHEET_FOLDER + location)).getId(),
-				FontLoader.loadFontData(FONT_FILE_FOLDER + location + FONT_EXTENSION),
+				resManager.directLoadResource(new TextureResource(name + "_fontsheet", fontTextureLocation)).getId(),
+				FontLoader.loadFontData(fontDataLocation),
 				FontLoader.sheetWidth, FontLoader.sheetHeight, 8, 10);
+	}
+
+
+	@Override
+	public void unload()
+	{
+
 	}
 
 	@Override
 	public void setId()
 	{
 		id = hashCode() / 1000;
-	}
-
-	@Override
-	public void cleanUp()
-	{
-
 	}
 
 	public Font getFont()

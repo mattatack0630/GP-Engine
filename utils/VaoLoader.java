@@ -1,18 +1,21 @@
 package utils;
 
+import org.lwjgl.opengl.GL15;
+import rendering.VaoObject;
+
 public class VaoLoader
 {
 	/** Raw Model (Obj Model) Loading Methods**/
 
 	/**Basic Vao loading method*/
-	public static VaoObject loadModel(int dataSize, float[] array)
+	public static VaoObject loadModel(int dataSize, float[] array, int vertCount)
 	{
 		VaoObject vaoObject = new VaoObject();
 		vaoObject.bind();
 
-		vaoObject.addAttribute(0, array, dataSize);
+		vaoObject.addAttribute(0, array, dataSize, GL15.GL_STATIC_DRAW);
 
-		vaoObject.vertexCount = array.length / 3;
+		vaoObject.setVertexCount(vertCount);
 
 		vaoObject.unbind();
 		return vaoObject;
@@ -24,8 +27,9 @@ public class VaoLoader
 		VaoObject vaoObject = new VaoObject();
 		vaoObject.bind();
 
-		vaoObject.addAttribute(VaoObject.POSITIONS, positions, 2);
-		vaoObject.addAttribute(VaoObject.TEXTURE_COORDS, textureCoords, 2);
+		vaoObject.addAttribute(VaoObject.POSITIONS, positions, 2, GL15.GL_STATIC_DRAW);
+		vaoObject.addAttribute(VaoObject.TEXTURE_COORDS, textureCoords, 2, GL15.GL_STATIC_DRAW);
+		vaoObject.setVertexCount(positions.length / 2);
 
 		vaoObject.unbind();
 		return vaoObject;
@@ -38,11 +42,11 @@ public class VaoLoader
 		VaoObject vaoObject = new VaoObject();
 
 		vaoObject.bind();
-		vaoObject.setIndexArray(indicies);
-		vaoObject.addAttribute(VaoObject.POSITIONS, positions, 3);
-		vaoObject.addAttribute(VaoObject.TEXTURE_COORDS, textureCoords, 2);
-		vaoObject.addAttribute(VaoObject.NORMALS, normals, 3);
-		vaoObject.addAttribute(VaoObject.TANGENTS, tangents, 3);
+		vaoObject.setIndexArray(indicies, GL15.GL_STATIC_DRAW);
+		vaoObject.addAttribute(VaoObject.POSITIONS, positions, 3, GL15.GL_STATIC_DRAW);
+		vaoObject.addAttribute(VaoObject.TEXTURE_COORDS, textureCoords, 2, GL15.GL_STATIC_DRAW);
+		vaoObject.addAttribute(VaoObject.NORMALS, normals, 3, GL15.GL_STATIC_DRAW);
+		vaoObject.addAttribute(VaoObject.TANGENTS, tangents, 3, GL15.GL_STATIC_DRAW);
 		vaoObject.setVertexCount(indicies.length);
 		vaoObject.unbind();
 
@@ -56,13 +60,13 @@ public class VaoLoader
 		VaoObject vaoObject = new VaoObject();
 		vaoObject.bind();
 
-		vaoObject.setIndexArray(indicies);
-		vaoObject.addAttribute(VaoObject.POSITIONS, positions, 3);
-		vaoObject.addAttribute(VaoObject.TEXTURE_COORDS, textureCoords, 2);
-		vaoObject.addAttribute(VaoObject.NORMALS, normals, 3);
-		vaoObject.addAttribute(VaoObject.TANGENTS, tangents, 3);
-		vaoObject.addAttribute(VaoObject.BONE_INDEX, boneIndices, 4);
-		vaoObject.addAttribute(VaoObject.BONE_WEIGHT, boneWeights, 4);
+		vaoObject.setIndexArray(indicies, GL15.GL_STATIC_DRAW);
+		vaoObject.addAttribute(VaoObject.POSITIONS, positions, 3, GL15.GL_STATIC_DRAW);
+		vaoObject.addAttribute(VaoObject.TEXTURE_COORDS, textureCoords, 2, GL15.GL_STATIC_DRAW);
+		vaoObject.addAttribute(VaoObject.NORMALS, normals, 3, GL15.GL_STATIC_DRAW);
+		vaoObject.addAttribute(VaoObject.TANGENTS, tangents, 3, GL15.GL_STATIC_DRAW);
+		vaoObject.addAttribute(VaoObject.BONE_INDEX, boneIndices, 4, GL15.GL_STATIC_DRAW);
+		vaoObject.addAttribute(VaoObject.BONE_WEIGHT, boneWeights, 4, GL15.GL_STATIC_DRAW);
 
 		vaoObject.unbind();
 		return vaoObject;

@@ -15,9 +15,9 @@ public class ColorClipInstance extends PostAffectInstance
 	}
 
 	@Override
-	public FboObject callAffect(FboObject currentScreen)
+	public FboObject callAffect(FboObject inScreen, FboObject outScreen)
 	{
 		PostProcessor.colorClipAffect.setAffectVars(clipValue);
-		return PostProcessor.colorClipAffect.processAffect(currentScreen);
+		return PostProcessor.colorClipAffect.processAffect(inScreen, outScreen);
 	}
 }

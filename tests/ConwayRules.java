@@ -9,7 +9,7 @@ public class ConwayRules
 	public static final int LIVED = 1;
 	public static final int DIED = 2;
 
-	public static int testState(Cell cell, CellEnvironmentData cellData)
+	public static int resolveConwayRuling(Cell cell, CellEnvironmentData cellData)
 	{
 		int cellCount = cellData.getCellCount();
 

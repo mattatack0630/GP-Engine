@@ -1,9 +1,9 @@
 package enitities.systems;
 
 import enitities.Entity;
-import enitities.components.MovementComponent;
+import enitities.components.VelocityComponent;
 import rendering.renderers.MasterRenderer;
-import utils.math.linear.rotation.Euler;
+import utils.math.linear.vector.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class MovementSystem extends EntitySystem
 {
-	private Map<Entity, MovementComponent> components;
+	private Map<Entity, VelocityComponent> components;
 
 	public MovementSystem()
 	{
@@ -25,9 +25,8 @@ public class MovementSystem extends EntitySystem
 	{
 		for (Entity e : components.keySet())
 		{
-			MovementComponent component = components.get(e);
-			e.setPosition(component.position);
-			e.setRotation(new Euler(component.rotation));
+			VelocityComponent velComponent = components.get(e);
+			e.setPosition(new Vector3f(e.getPosition()).add(velComponent.getVelocity()));
 		}
 	}
 
@@ -39,6 +38,6 @@ public class MovementSystem extends EntitySystem
 	@Override
 	public void setupNeededComponents()
 	{
-		super.addNeededComponent(MovementComponent.class, components);
+		super.addNeededComponent(VelocityComponent.class, components);
 	}
 }

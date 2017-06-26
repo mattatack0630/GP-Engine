@@ -102,7 +102,7 @@ public class SerialArray extends SerialContainer
 
 			this.name = name;
 			this.arrayLength = data.length;
-			this.dataLength = data[0].length;
+			this.dataLength = data.length > 0 ? data[0].length : 0;
 			this.data = data;
 			this.dataType = dataType;
 		}

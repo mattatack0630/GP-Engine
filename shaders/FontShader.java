@@ -1,6 +1,6 @@
 package shaders;
 
-import gui.Text.TextAttributes;
+import gui.text.TextAttributes;
 import utils.math.linear.matrix.Matrix4f;
 
 public class FontShader extends ShaderProgram

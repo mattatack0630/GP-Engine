@@ -15,9 +15,9 @@ public class BlurAffectInstance extends PostAffectInstance
 	}
 
 	@Override
-	public FboObject callAffect(FboObject currentScreen)
+	public FboObject callAffect(FboObject inScreen, FboObject outScreen)
 	{
 		PostProcessor.blurAffect.setAffectVars(blurScale);
-		return PostProcessor.blurAffect.processAffect(currentScreen);
+		return PostProcessor.blurAffect.processAffect(inScreen, outScreen);
 	}
 }

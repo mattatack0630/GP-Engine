@@ -1,5 +1,7 @@
 package serialization;
 
+import utils.IOUtils;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,7 @@ public class SerialDatabase extends SerialContainer
 
 	public void addObject(SerialObject object)
 	{
+
 		this.objects.add(object);
 	}
 
@@ -61,7 +64,9 @@ public class SerialDatabase extends SerialContainer
 	@Override
 	public void deserialize(ByteBuffer buffer)
 	{
+		buffer.flip();
 		byte type = buffer.get();
+
 		if (type == this.type)
 		{
 			short nameLength = buffer.getShort();
@@ -83,9 +88,9 @@ public class SerialDatabase extends SerialContainer
 		}
 	}
 
-	// debugging
 	public String testString(int tc)
 	{
+		// debugging
 		String s = new String();
 
 		s += "DataBase: " + name + "\n";
@@ -103,4 +108,21 @@ public class SerialDatabase extends SerialContainer
 				return obj;
 		return null;
 	}
+
+	public static SerialDatabase fromFile(String filepath, SerialDatabase database)
+	{
+		byte[] bytes = IOUtils.getBytes(filepath);
+		ByteBuffer buffer = ByteBuffer.wrap(bytes);
+		buffer.position(buffer.limit());
+		database.deserialize(buffer);
+		return database;
+	}
+
+	public static void toFile(String filepath, SerialDatabase database)
+	{
+		ByteBuffer buffer = ByteBuffer.allocate(database.calcLength());
+		database.serialize(buffer);
+		IOUtils.writeBytes(filepath, buffer.array());
+	}
+
 }

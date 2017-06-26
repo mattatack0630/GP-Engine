@@ -23,6 +23,11 @@ public class Vector4f extends Vector
 		this(s, s, s, s);
 	}
 
+	public Vector4f(Vector4f src)
+	{
+		this(src.x(), src.y(), src.z(), src.w());
+	}
+
 	/**
 	 * Vec4 Specific Methods
 	 */
@@ -72,6 +77,14 @@ public class Vector4f extends Vector
 		elements[1] = y;
 		elements[2] = z;
 		elements[3] = w;
+	}
+
+	public void set(Vector4f v)
+	{
+		setX(v.x());
+		setY(v.y());
+		setZ(v.z());
+		setW(v.w());
 	}
 
 	/**
@@ -135,4 +148,5 @@ public class Vector4f extends Vector
 		Vector.multElements(left, right, dest);
 		return dest;
 	}
+
 }

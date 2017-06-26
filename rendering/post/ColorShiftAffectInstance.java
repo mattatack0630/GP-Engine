@@ -18,9 +18,9 @@ public class ColorShiftAffectInstance extends PostAffectInstance
 	}
 
 	@Override
-	public FboObject callAffect(FboObject currentScreen)
+	public FboObject callAffect(FboObject inScreen, FboObject outScreen)
 	{
 		PostProcessor.colorShiftAffect.setAffectVars(shiftBy);
-		return PostProcessor.colorShiftAffect.processAffect(currentScreen);
+		return PostProcessor.colorShiftAffect.processAffect(inScreen, outScreen);
 	}
 }

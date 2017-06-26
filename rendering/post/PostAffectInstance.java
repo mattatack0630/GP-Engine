@@ -12,5 +12,5 @@ public abstract class PostAffectInstance
 	 * Affect has one input, the post processors current screen.
 	 * It modifies the screen directly.
 	 */
-	public abstract FboObject callAffect(FboObject currentScreen);
+	public abstract FboObject callAffect(FboObject inScreen, FboObject outScreen);
 }

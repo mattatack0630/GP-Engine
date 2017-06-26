@@ -4,12 +4,12 @@ import audio.AudioManager;
 import audio.AudioResourcePool;
 import enitities.EntityManager;
 import gui.GuiManager;
-import gui.Text.FontLoader;
-import gui.Text.TextMeshGenerator;
+import gui.text.FontLoader;
+import gui.text.TextMeshGenerator;
+import gui_m3.GuiElementParser;
 import input.InputManager;
 import input.picker.PickingManager;
 import org.lwjgl.opengl.Display;
-import particles.ParticleManager;
 import rendering.DisplayManager;
 import rendering.camera.Camera;
 import rendering.camera.CameraController;
@@ -19,6 +19,8 @@ import rendering.renderers.Gizmos3D;
 import rendering.renderers.MasterRenderer;
 import rendering.renderers.Trinket2D;
 import resources.*;
+import states.GameState;
+import states.GameStateManager;
 import utils.Timer;
 
 import java.util.List;
@@ -27,6 +29,9 @@ public class Engine
 {
 	private static boolean isRunning = false;
 
+	private static MasterRenderer renderer;
+
+	private static GuiManager guiManager;
 	private static InputManager inputManager;
 	private static AudioManager audioManager;
 	private static EntityManager entityManager;
@@ -34,10 +39,8 @@ public class Engine
 	private static PickingManager pickingManager;
 	private static ResourceManager resourceManager;
 
-	private static MasterRenderer renderer;
 	private static CameraController cameraController;
 	private static Camera camera;
-
 	private static Timer time;
 
 	/**
@@ -45,19 +48,22 @@ public class Engine
 	 **/
 	public synchronized static void init()
 	{
+		isRunning = true;
+
 		DisplayManager.createDisplay();//
 		EngineFiles.parseFromFile("res/index.gpm");
 		TextMeshGenerator.init();
 		FontLoader.init();
 		AudioManager.createOpenAL();
 		AudioResourcePool.initResources();
-		GuiManager.init();//
+		GuiElementParser.init();
 
 		resourceManager = new ResourceManager();
 		pickingManager = new PickingManager();
 		stateManager = new GameStateManager();
 		audioManager = new AudioManager();
 		inputManager = new InputManager();
+		guiManager = new GuiManager();
 
 		camera = new PerspectiveCamera(0.1f, 1000f, (float) 70);
 		cameraController = new CameraLinearKeyController(camera);
@@ -81,8 +87,7 @@ public class Engine
 	{
 		stateManager.addStates(states);
 		stateManager.initStates();
-		stateManager.setState(activeState);
-		isRunning = true;
+		stateManager.set(activeState);
 
 		while (checkRunning())
 		{
@@ -99,19 +104,18 @@ public class Engine
 	public static void tick()
 	{
 		inputManager.update();
-		stateManager.tick();
-		entityManager.tick();
+		stateManager.update();
+		entityManager.update();
 		audioManager.update();
+		guiManager.update();
 
-		ParticleManager.tick(camera);//
-		GuiManager.tick();//
-
-		cameraController.tick();
+		cameraController.update();
 		camera.update();
 
-		pickingManager.doPickingCheck(renderer.getPickingFbo(), inputManager.getCursorCoords(), camera);
+		pickingManager.doPickingCheck(renderer.getObjectFbo(), inputManager.getCursorCoords(), camera);
 
-		resourceManager.runBackgroundManagement();
+		resourceManager.loadFromQueue();
+		resourceManager.unloadFromQueue();
 	}
 
 	/**
@@ -121,18 +125,18 @@ public class Engine
 	{
 		stateManager.render(renderer);
 		entityManager.render(renderer);
-		ParticleManager.render(renderer);//
-		GuiManager.render(renderer);//
-
+		guiManager.render(renderer);
 		renderer.render();
 
 		DisplayManager.updateDisplay();
+		Gizmos3D.releaseRenderedObjs();
+		Trinket2D.releaseRenderedTextures();
 	}
 
 	/**
 	 * Clean up all of the resources
 	 **/
-	private synchronized static void stop()
+	public synchronized static void stop()
 	{
 		isRunning = false;
 
@@ -147,9 +151,6 @@ public class Engine
 		DisplayManager.closeDisplay();
 
 		System.out.println("Average FPS : " + avFPS);
-
-		// Find better solution soon
-		System.exit(0);
 	}
 
 	public static boolean checkRunning()
@@ -158,6 +159,11 @@ public class Engine
 			stop();
 
 		return isRunning;
+	}
+
+	public static boolean isCloseRequested()
+	{
+		return Display.isCloseRequested();
 	}
 
 	public static void setCameraController(CameraController _controller)
@@ -195,19 +201,29 @@ public class Engine
 		return inputManager;
 	}
 
-	public static MasterRenderer getRenderer()
+	public static AudioManager getAudioManager()
+	{
+		return audioManager;
+	}
+
+	public static MasterRenderer getRenderManager()
 	{
 		return renderer;
 	}
 
-	public static AudioManager getAudio()
+	public static GuiManager getGuiManager()
 	{
-		return audioManager;
+		return guiManager;
 	}
 
 	public static float getTime()
 	{
 		return time.getTime();
+	}
+
+	public static boolean isRunning()
+	{
+		return isRunning;
 	}
 
 	public static Camera getCamera()
@@ -241,44 +257,40 @@ public class Engine
 		ResourcePackage resPackage = new ResourcePackage();
 
 		//Load defaults before everything
-		resPackage.addResource(new StaticModelResource("defualtModel", "defualt_model"));
-		resPackage.addResource(new TextureResource("defualtTexture", "diffuse_maps/defualt_texture"));
-		resPackage.addResource(new TextureResource("defualtNone", "info_maps/defualt_info"));
+		resPackage.addResource(new StaticModelResource("defualtModel", EngineFiles.STATIC_MODELS_PATH + "defualt_model.lime"));
+		resPackage.addResource(new TextureResource("defualtTexture", EngineFiles.DIFFUSE_MAPS_PATH + "defualt_texture.png"));
+		resPackage.addResource(new TextureResource("defualtNone", EngineFiles.INFO_MAPS_PATH + "defualt_info.png"));
 
 		// Load Textures
-		resPackage.addResource(new TextureResource("chrome_texture", "diffuse_maps/chrome"));
-		resPackage.addResource(new TextureResource("barrel_texture", "diffuse_maps/barrel"));
-		resPackage.addResource(new TextureResource("smoke", "particle_sheets/smoke"));
+		resPackage.addResource(new TextureResource("chrome_texture", EngineFiles.DIFFUSE_MAPS_PATH + "chrome.png"));
+		resPackage.addResource(new TextureResource("barrel_texture", EngineFiles.DIFFUSE_MAPS_PATH + "barrel.png"));
+		resPackage.addResource(new TextureResource("smoke", EngineFiles.PARTICLE_SHEETS_PATH + "smoke.png"));
 
 		// Load cube textures
-		resPackage.addResource(new CubeTextureResource("sky", "sky/sky"));
+		resPackage.addResource(new CubeTextureResource("sky", EngineFiles.CUBE_TEXTURES_PATH + "sky/sky", ".png"));
 
 		// Load Anim models
-		resPackage.addResource(new AnimatedModelResource("barrel", "barrel"));
-		resPackage.addResource(new AnimatedModelResource("blockBoy", "blockboy"));
-		resPackage.addResource(new AnimatedModelResource("runModel", "character_run_1"));
+		resPackage.addResource(new AnimatedModelResource("barrel", EngineFiles.ANIMATED_MODELS_PATH + "barrel.lime"));
+		resPackage.addResource(new AnimatedModelResource("blockBoy", EngineFiles.ANIMATED_MODELS_PATH + "blockboy.lime"));
+		resPackage.addResource(new AnimatedModelResource("runModel", EngineFiles.ANIMATED_MODELS_PATH + "character_run_1.lime"));
 
 		// Load Static models
-		resPackage.addResource(new StaticModelResource("boneModel", "boneModel"));
-		resPackage.addResource(new StaticModelResource("isoSphereModel", "isosphere"));
-		resPackage.addResource(new StaticModelResource("planeModel", "planeModel"));
-		resPackage.addResource(new StaticModelResource("barrelS", "barrels_1"));
-		resPackage.addResource(new StaticModelResource("statue", "statue"));
-		resPackage.addResource(new StaticModelResource("pyramid", "tri_prism"));
-		resPackage.addResource(new StaticModelResource("teapot", "teapot"));
+		resPackage.addResource(new StaticModelResource("boneModel", EngineFiles.STATIC_MODELS_PATH + "boneModel.lime"));
+		resPackage.addResource(new StaticModelResource("isoSphereModel", EngineFiles.STATIC_MODELS_PATH + "isosphere.lime"));
+		resPackage.addResource(new StaticModelResource("planeModel", EngineFiles.STATIC_MODELS_PATH + "planeModel.lime"));
+		resPackage.addResource(new StaticModelResource("barrelS", EngineFiles.STATIC_MODELS_PATH + "barrels_1.lime"));
+		resPackage.addResource(new StaticModelResource("statue", EngineFiles.STATIC_MODELS_PATH + "statue.lime"));
+		resPackage.addResource(new StaticModelResource("pyramid", EngineFiles.STATIC_MODELS_PATH + "tri_prism.lime"));
+		resPackage.addResource(new StaticModelResource("teapot", EngineFiles.STATIC_MODELS_PATH + "teapot.lime"));
+		resPackage.addResource(new StaticModelResource("quadModel", EngineFiles.STATIC_MODELS_PATH + "quad_model.lime"));
 
 		// Load fonts
-		resPackage.addResource(new FontResource("Arial", "arial"));
-		resPackage.addResource(new FontResource("Segoe", "Segoe"));
-		resPackage.addResource(new FontResource("SegoeSL", "SegoeSL"));
-		resPackage.addResource(new FontResource("VinerHand", "VinerHand"));
+		resPackage.addResource(new FontResource("Geo", EngineFiles.FONTS_PATH + "Geo.fnt", EngineFiles.FONT_TEXTURES_PATH + "Geo.png"));
+		resPackage.addResource(new FontResource("Arial", EngineFiles.FONTS_PATH + "arial.fnt", EngineFiles.FONT_TEXTURES_PATH + "arial.png"));
+		resPackage.addResource(new FontResource("Segoe", EngineFiles.FONTS_PATH + "Segoe.fnt", EngineFiles.FONT_TEXTURES_PATH + "Segoe.png"));
+		resPackage.addResource(new FontResource("SegoeSL", EngineFiles.FONTS_PATH + "SegoeSL.fnt", EngineFiles.FONT_TEXTURES_PATH + "SegoeSL.png"));
+		resPackage.addResource(new FontResource("VinerHand", EngineFiles.FONTS_PATH + "VinerHand.fnt", EngineFiles.FONT_TEXTURES_PATH + "VinerHand.png"));
 
-		// Load audio
-		resPackage.addResource(new SoundResource("knock", "door_converted"));
-
-		// Load Sprite Sheets
-		resPackage.addResource(new SpriteSheetResource("cowSheet", "cow_sheet"));
-		resPackage.addResource(new SpriteSheetResource("smokeSheet", "smoke_sheet"));
 		return resPackage;
 	}
 }

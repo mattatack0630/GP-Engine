@@ -25,9 +25,9 @@ public class BloomAffectInstance extends PostAffectInstance
 	}
 
 	@Override
-	public FboObject callAffect(FboObject currentScreen)
+	public FboObject callAffect(FboObject inScreen, FboObject outScreen)
 	{
 		PostProcessor.bloomAffect.setAffectVars(clipValue, blurValue, addValue);
-		return PostProcessor.bloomAffect.processAffect(currentScreen);
+		return PostProcessor.bloomAffect.processAffect(inScreen, outScreen);
 	}
 }

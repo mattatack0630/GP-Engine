@@ -23,20 +23,20 @@ public class DOFAffect extends PostProcessingEffect
 	}
 
 	@Override
-	protected FboObject doAffect(FboObject currentScreen)
+	protected FboObject doAffect(FboObject inScreen, FboObject outputFbo)
 	{
-		PostProcessor.blurAffect.setAffectVars(blurValue);
+/*		PostProcessor.blurAffect.setAffectVars(blurValue);
 		FboObject blurScreen = PostProcessor.blurAffect.processAffect(currentScreen);
 
 		outputFbo.bindFrameBuffer();
 		PostProcessor.DOFShader.start();
 		PostProcessor.DOFShader.loadFloat("dist", distance);
-		PostProcessor.DOFShader.loadTexture("screenTexture", currentScreen.getColorAttachment(0), 0);
-		PostProcessor.DOFShader.loadTexture("depthTexture", currentScreen.getDepthAttachment(), 1);
+		PostProcessor.DOFShader.loadTexture("screenTexture", inScreen.getColorAttachment(0), 0);
+		PostProcessor.DOFShader.loadTexture("depthTexture", inScreen.getDepthAttachment(), 1);
 		PostProcessor.DOFShader.loadTexture("blurTexture", blurScreen.getColorAttachment(0), 2);
 		render();
 
-		outputFbo.unbindFrameBuffer();
+		outputFbo.unbindFrameBuffer();*/
 
 		return outputFbo;
 	}
@@ -50,6 +50,5 @@ public class DOFAffect extends PostProcessingEffect
 	@Override
 	public void cleanAffect()
 	{
-		outputFbo.cleanUp();
 	}
 }

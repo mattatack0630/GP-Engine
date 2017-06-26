@@ -57,6 +57,12 @@ public class Vector2f extends Vector
 		elements[1] = y;
 	}
 
+	public void set(Vector2f xy)
+	{
+		elements[0] = xy.x();
+		elements[1] = xy.y();
+	}
+
 	/**
 	 * Casted Methods
 	 */

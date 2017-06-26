@@ -16,28 +16,30 @@ import java.util.Map;
  */
 public class SpriteSheetResource extends Resource
 {
-	private static final String SPRITE_SHEET_DATA_LOC = "res/models/sprite_sheets/";
-	private static final String SPRITE_SHEET_DATA_EXT = ".lisf";
-
 	private LisfData data;
 	private SpriteSheet spriteSheet;
 	private Map<String, SpriteModel> spriteModels;
 
 	public SpriteSheetResource(String name, String location)
 	{
-		super(name, SPRITE_SHEET_DATA_LOC + location + SPRITE_SHEET_DATA_EXT);
+		super(name, location);
 		spriteModels = new HashMap<>();
+	}
+
+	@Override
+	public void preloadOnDaemon()
+	{
+		data = LisfParser.parseLISF(location);
 	}
 
 	@Override
 	public void load(ResourceManager resManager)
 	{
-		data = LisfParser.parseLISF(location);
 
 		TextureResource spriteTexture = new TextureResource(name + "_texture", data.texturePath);
 		TextureResource spriteNormal = new TextureResource(name + "_normal", data.normalPath);
-		resManager.loadResource(spriteTexture);
-		resManager.loadResource(spriteNormal);
+		resManager.directLoadResource(spriteTexture);
+		resManager.directLoadResource(spriteNormal);
 
 		spriteSheet = new SpriteSheet(spriteTexture, spriteNormal, data.rowColumn);
 		spriteSheet.setMagFilter(data.textureSmoothing ? GL11.GL_LINEAR : GL11.GL_NEAREST);
@@ -49,15 +51,15 @@ public class SpriteSheetResource extends Resource
 	}
 
 	@Override
-	public void setId()
+	public void unload()
 	{
-		id = Maths.uniqueInteger();
+		// Textures will clean themselves up
 	}
 
 	@Override
-	public void cleanUp()
+	public void setId()
 	{
-		// Textures will clean themselves up
+		id = Maths.uniqueInteger();
 	}
 
 	public SpriteModel getModel(String modelName)

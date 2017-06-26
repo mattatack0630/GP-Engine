@@ -1,12 +1,14 @@
 package physics.simphysics;
 
-import utils.math.geom.AABB;
+import utils.dstruct.OctItem;
+import utils.dstruct.OctTree;
+import utils.math.geom.*;
 import utils.math.linear.vector.Vector3f;
 
 /**
  * Created by mjmcc on 1/23/2017.
  */
-public class SimpleCollisionBody
+public class SimpleCollisionBody implements OctItem
 {
 	private static final int MAX_IGNORE_MASKS = 15;
 	private static final int IGNORE_ALL = 112;
@@ -15,6 +17,7 @@ public class SimpleCollisionBody
 
 	private AABB bounds;
 	private boolean isDynamic;
+	private boolean moved;
 
 	private int collidesMask;
 	private int[] ignoreMasks;
@@ -36,7 +39,7 @@ public class SimpleCollisionBody
 		bounds.setCenter(bounds.getCenter().add(t));
 	}
 
-	public Vector3f getPos()
+	public Vector3f getPosition()
 	{
 		return bounds.getCenter();
 	}
@@ -51,7 +54,7 @@ public class SimpleCollisionBody
 		return isDynamic;
 	}
 
-	public void setPos(Vector3f pos)
+	public void setPosition(Vector3f pos)
 	{
 		this.bounds.setCenter(pos);
 	}
@@ -101,5 +104,36 @@ public class SimpleCollisionBody
 	public int getMask()
 	{
 		return collidesMask;
+	}
+
+	@Override
+	public void onRegionPlace(OctTree region)
+	{
+
+	}
+
+	@Override
+	public boolean collides(AABB region)
+	{
+		IntersectData data = IntersectMath.intersects(region, bounds, IntersectParams.CALC_INTERSECT_ONLY);
+		return data.isIntersecting();
+	}
+
+	@Override
+	public boolean contains(AABB region)
+	{
+		IntersectData data = IntersectMath.intersects(region, bounds, IntersectParams.CALC_INTERSECT_ONLY);
+		return data.getIntersectType() == IntersectType.CONTAINS;
+	}
+
+	@Override
+	public boolean changedTransform()
+	{
+		return moved;
+	}
+
+	public void setMoved(boolean moved)
+	{
+		this.moved = moved;
 	}
 }

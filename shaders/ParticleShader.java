@@ -22,7 +22,7 @@ public class ParticleShader extends ShaderProgram
 		super(vertexFile, fragmentFile);
 
 		projectionUniform = new MatrixUniform(this, "projection", new Matrix4f());
-		modelViewUniform = new MatrixUniform(this, "ModelView", new Matrix4f());
+		modelViewUniform = new MatrixUniform(this, "modelView1", new Matrix4f());
 		currStageUniform = new VectorUniform(this, "stageCoords0", new Vector4f());
 		postStageUniform = new VectorUniform(this, "stageCoords1", new Vector4f());
 		progressUniform = new FloatUniform(this, "progression", 0);
@@ -32,7 +32,11 @@ public class ParticleShader extends ShaderProgram
 	protected void bindAttributes()
 	{
 		super.bindAttribute(0, "position");
-		super.bindAttribute(1, "textureCoords");
+		super.bindAttribute(1, "modelView");
+		super.bindAttribute(5, "stageCoords0");
+		super.bindAttribute(6, "stageCoords1");
+		super.bindAttribute(7, "progression");
+		super.bindAttribute(8, "particleColor");
 	}
 
 	public void loadProjectionMatrix(Matrix4f matrix)

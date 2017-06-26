@@ -45,10 +45,10 @@ public class Color
 
 	public Color(int col)
 	{
-		this.r = 0;
-		this.g = 0;
-		this.b = 0;
-		this.a = 0;
+		this.r = col;
+		this.g = col;
+		this.b = col;
+		this.a = col;
 
 	}
 
@@ -266,4 +266,19 @@ public class Color
 		return new Vector4f(r, g, b, a);
 	}
 
+	public void set(Color src)
+	{
+		this.setA(src.a);
+		this.setR(src.r);
+		this.setG(src.g);
+		this.setB(src.b);
+	}
+
+	public void set(float r, float g, float b, float a)
+	{
+		this.setR(r);
+		this.setG(g);
+		this.setB(b);
+		this.setA(a);
+	}
 }

@@ -1,7 +1,7 @@
 package models;
 
 import resources.TextureResource;
-import utils.VaoObject;
+import rendering.VaoObject;
 import utils.math.geom.AABBmm;
 
 /**

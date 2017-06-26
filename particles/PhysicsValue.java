@@ -4,6 +4,8 @@ import utils.math.linear.vector.Vector3f;
 
 /**
  * Created by mjmcc on 12/27/2016.
+ *
+ * The Physics value is used to simulate physics, using acceleration, velocity, and a static value.
  */
 public class PhysicsValue
 {
@@ -13,23 +15,30 @@ public class PhysicsValue
 
 	public PhysicsValue(PhysicsValue src)
 	{
-		this.staticVal = new Vector3f(src.staticVal);
-		this.velocityVal = new Vector3f(src.velocityVal);
-		this.accelerationVal = new Vector3f(src.accelerationVal);
+		this.staticVal = new Vector3f();
+		this.velocityVal = new Vector3f();
+		this.accelerationVal = new Vector3f();
+		setStaticVal(src.staticVal);
+		setVelocityVal(src.velocityVal);
+		setAccelerationVal(src.accelerationVal);
 	}
 
 	public PhysicsValue(Vector3f staticVal)
 	{
-		this.staticVal = new Vector3f(staticVal);
+		this.staticVal = new Vector3f();
 		this.velocityVal = new Vector3f();
 		this.accelerationVal = new Vector3f();
+		setStaticVal(staticVal);
 	}
 
 	public PhysicsValue(Vector3f staticVal, Vector3f velocityVal, Vector3f accelerationVal)
 	{
-		this.staticVal = staticVal;
-		this.velocityVal = velocityVal;
-		this.accelerationVal = accelerationVal;
+		this.staticVal = new Vector3f();
+		this.velocityVal = new Vector3f();
+		this.accelerationVal = new Vector3f();
+		setStaticVal(staticVal);
+		setVelocityVal(velocityVal);
+		setAccelerationVal(accelerationVal);
 	}
 
 	public void update()
@@ -45,7 +54,9 @@ public class PhysicsValue
 
 	public void setStaticVal(Vector3f staticVal)
 	{
-		this.staticVal = staticVal;
+		this.staticVal.setX(staticVal.x());
+		this.staticVal.setY(staticVal.y());
+		this.staticVal.setZ(staticVal.z());
 	}
 
 	public Vector3f getVelocityVal()
@@ -55,7 +66,9 @@ public class PhysicsValue
 
 	public void setVelocityVal(Vector3f velocityVal)
 	{
-		this.velocityVal = velocityVal;
+		this.velocityVal.setX(velocityVal.x());
+		this.velocityVal.setY(velocityVal.y());
+		this.velocityVal.setZ(velocityVal.z());
 	}
 
 	public Vector3f getAccelerationVal()
@@ -65,6 +78,8 @@ public class PhysicsValue
 
 	public void setAccelerationVal(Vector3f accelerationVal)
 	{
-		this.accelerationVal = accelerationVal;
+		this.accelerationVal.setX(accelerationVal.x());
+		this.accelerationVal.setY(accelerationVal.y());
+		this.accelerationVal.setZ(accelerationVal.z());
 	}
 }

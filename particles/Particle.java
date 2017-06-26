@@ -1,92 +1,79 @@
 package particles;
 
-import models.SpriteSequence;
-import models.SpriteSheet;
-import rendering.renderers.MasterRenderer;
-import utils.math.Maths;
+import engine.Engine;
 import utils.math.linear.rotation.Euler;
 import utils.math.linear.vector.Vector3f;
 
 /**
  * Created by mjmcc on 12/27/2016.
+ * <p>
+ * The particle is an abstract class used to render affects like fireworks and smoke.
+ * The particle uses an internal physics system, whose values can be set to control
+ * the particles movement.
  */
-public class Particle implements Comparable
+public abstract class Particle
 {
-	private ParticleRenderData renderData;
-	private SpriteSequence spriteSequence;
+	// Used to render the particle
+	protected ParticleRenderData renderData;
 
-	private float lifeTime;
-	private float lifeSpan;
+	// Used to control the particles deletion within a system
+	protected float lifeSpan;
+	protected float spawnedAt;
 
-	private PhysicsValue position;
-	private PhysicsValue rotation;
-	private PhysicsValue scale;
+	// Used to control the particles physics/movement
+	protected PhysicsValue scale;
+	protected PhysicsValue position;
+	protected PhysicsValue rotation;
 
-	private float cameraDist;
-
-	public Particle(float lifeSpan, SpriteSequence spriteSequence, Vector3f position, Vector3f rotation, Vector3f scale)
+	public Particle(float lifeSpan, Vector3f position, Vector3f rotation, Vector3f scale)
 	{
-		this.lifeTime = 0.0001f;
 		this.lifeSpan = lifeSpan;
-		this.spriteSequence = spriteSequence;
+		this.spawnedAt = Engine.getTime();
+
 		this.position = new PhysicsValue(position);
 		this.rotation = new PhysicsValue(rotation);
 		this.scale = new PhysicsValue(scale);
+
 		this.renderData = new ParticleRenderData(position, new Euler(rotation), scale);
-		this.cameraDist = Float.MAX_VALUE;
+		this.renderData.updateMatrix();
 	}
 
-	public void update()
+	// Get the particles texture/ texture sheet
+	public abstract int getTextureId();
+
+	// Set the particles tile stage, updated per frame
+	public abstract void updateTileStage();
+
+	// Used to clone the particle in a system
+	public abstract Particle copyParticle();
+
+	/**
+	 * Update the particle each frame, called by the particle system
+	 */
+	public void update(float time)
 	{
-		if (lifeTime < lifeSpan)
-		{
-			lifeTime++;
-			scale.update();
-			position.update();
-			rotation.update();
+		scale.update();
+		position.update();
+		rotation.update();
 
-			int tileCount = spriteSequence.getTileCount() - 1;
-			float nlife = (lifeTime / lifeSpan);
-			float ntile = (lifeSpan / tileCount);
-			int currTile = Maths.clamp((int) (nlife * tileCount), 0, tileCount);
-			int postTile = Maths.clamp((currTile + 1), 0, tileCount);
-			float progress = Maths.map(lifeTime, currTile * ntile, postTile * ntile, 0.0f, 1.0f);
+		updateTileStage();
+		renderData.setScale(scale.getStaticVal());
+		renderData.setPosition(position.getStaticVal());
+		renderData.setRotation(new Euler(rotation.getStaticVal())); // X
 
-			renderData.setCurrStage(spriteSequence.getTileMinMax(currTile));
-			renderData.setPostStage(spriteSequence.getTileMinMax(postTile));
-			renderData.setStageProgression(progress);
-
-			renderData.setScale(scale.getStaticVal());
-			renderData.setPosition(position.getStaticVal());
-			renderData.setRotation(new Euler(rotation.getStaticVal()));
-
-			renderData.updateMatrix();
-		}
+		renderData.updateMatrix();
 	}
 
-	public void render(MasterRenderer renderer)
-	{
-		renderer.processParticle(this);
-	}
-
-	public void setCameraDist(float cameraDist)
-	{
-		this.cameraDist = cameraDist;
-	}
-
-	public float getLife()
-	{
-		return lifeTime;
-	}
+	/* Getters and setters */
 
 	public float getLifeSpan()
 	{
 		return lifeSpan;
 	}
 
-	public SpriteSheet getParticleTexture()
+	public float getSpawnedAt()
 	{
-		return spriteSequence.getSheet();
+		return spawnedAt;
 	}
 
 	public ParticleRenderData getRenderData()
@@ -94,9 +81,9 @@ public class Particle implements Comparable
 		return renderData;
 	}
 
-	public void setPositionPhysics(PhysicsValue val)
+	public void setLifeSpan(float lifeSpan)
 	{
-		this.position = val;
+		this.lifeSpan = lifeSpan;
 	}
 
 	public void setScalePhysics(PhysicsValue scalePhysics)
@@ -104,37 +91,63 @@ public class Particle implements Comparable
 		this.scale = scalePhysics;
 	}
 
-	public Particle copy()
+	public void setPositionPhysics(PhysicsValue posPhysics)
 	{
-		Particle copy = new Particle(0, null, new Vector3f(), new Vector3f(), new Vector3f());
-
-		copy.lifeSpan = this.lifeSpan;
-		copy.lifeTime = this.lifeTime;
-		copy.spriteSequence = this.spriteSequence;
-		copy.renderData = this.renderData.copy();
-		copy.position = new PhysicsValue(this.position);
-		copy.rotation = new PhysicsValue(this.rotation);
-		copy.scale = new PhysicsValue(this.scale);
-
-		return copy;
+		this.position = posPhysics;
 	}
 
-	@Override
-	public int compareTo(Object o)
+	public void setRotationPhysics(PhysicsValue rotPhysics)
 	{
-		if (o instanceof Particle)
-		{
-			Particle other = (Particle) o;
-			if (other.cameraDist > this.cameraDist)
-				return -1;
-			if (other.cameraDist < this.cameraDist)
-				return 1;
-		}
-		return 0;
+		this.rotation = rotPhysics;
+	}
+
+	public PhysicsValue getSPhysics()
+	{
+		return scale;
+	}
+
+	public PhysicsValue getPPhysics()
+	{
+		return position;
+	}
+
+	public PhysicsValue getRPhysics()
+	{
+		return rotation;
 	}
 
 	public Vector3f getPosition()
 	{
 		return position.getStaticVal();
+	}
+
+	public Vector3f getPVelocity()
+	{
+		return position.getVelocityVal();
+	}
+
+	public Vector3f getPAcceleration()
+	{
+		return position.getAccelerationVal();
+	}
+
+	public void setPosition(Vector3f pos)
+	{
+		position.setStaticVal(pos);
+	}
+
+	public void setPVelocity(Vector3f vel)
+	{
+		position.setVelocityVal(vel);
+	}
+
+	public void setPAcceleration(Vector3f acc)
+	{
+		position.setAccelerationVal(acc);
+	}
+
+	public void setRenderData(ParticleRenderData renderData)
+	{
+		this.renderData = renderData;
 	}
 }

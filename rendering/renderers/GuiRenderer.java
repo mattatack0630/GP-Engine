@@ -1,40 +1,34 @@
 package rendering.renderers;
 
+import gui.GuiRenderable;
 import gui.GuiTexture;
-import gui.Text.GuiText;
+import gui.text.GuiText;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
 import rendering.RenderData;
-import shaders.FontShader;
+import rendering.VaoObject;
 import shaders.GuiShader;
 import utils.VaoLoader;
-import utils.VaoObject;
 import utils.math.linear.MatrixGenerator;
 import utils.math.linear.matrix.Matrix4f;
 import utils.math.linear.rotation.Euler;
 import utils.math.linear.vector.Vector3f;
+import utils.math.linear.vector.Vector4f;
 
 import java.util.List;
 
 public class GuiRenderer
 {
-	private static final float[] POSITIONS = new float[]{-.5f, .5f, 0, -.5f, -.5f, 0, .5f, .5f, 0, .5f, -.5f, 0};
-	private static final VaoObject QUAD = VaoLoader.loadModel(3, POSITIONS);
+	private static final float[] POSITIONS = new float[]{-.5f, .5f, -.5f, -.5f, .5f, .5f, .5f, .5f, -.5f, -.5f, .5f, -.5f};
+	private static final VaoObject GUI_QUAD = VaoLoader.loadModel(2, POSITIONS,6);
+	public static final Vector4f DEF_TEXTURE_COORDS = new Vector4f(0,0,1,1);
 
-	public GuiShader GuiTexureShader = new GuiShader();
-	public FontShader fontShader = new FontShader();
+	public GuiShader combinedShader = new GuiShader();
 
 	public GuiRenderer()
 	{
 		GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glCullFace(GL11.GL_BACK);
-	}
-
-	public void prepare()
-	{
-		GL11.glDisable(GL11.GL_DEPTH_TEST);
 	}
 
 	private void prepareGuiText(GuiText texture)
@@ -47,46 +41,18 @@ public class GuiRenderer
 				new Vector3f(transform.getPosition().x(), transform.getPosition().y(), 0), transform.getRotation(),
 				new Vector3f(texture.getAttribs().getFontSize(), texture.getAttribs().getFontSize(), 1), null);
 
-		fontShader.loadOverallAlpha(texture.getOpacity());
-		fontShader.loadTransformationMatrix(transformationMatrix);
-		fontShader.loadTextAttribs(texture.getAttribs());
-	}
-
-	public void renderGuiText(List<GuiText> text)
-	{
-		fontShader.start();
-
-		GL11.glEnable(GL11.GL_BLEND);
-		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-		GL11.glDisable(GL11.GL_DEPTH_TEST);
-
-		for (GuiText texture : text)
-		{
-			GL30.glBindVertexArray(texture.getMesh().vaoId);
-			GL20.glEnableVertexAttribArray(0);
-			GL20.glEnableVertexAttribArray(1);
-			prepareGuiText(texture);
-			GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, texture.getMesh().vertexCount);
-		}
-
-		GL11.glEnable(GL11.GL_DEPTH_TEST);
-		GL11.glDisable(GL11.GL_BLEND);
-		GL20.glDisableVertexAttribArray(0);
-		GL20.glDisableVertexAttribArray(1);
-		GL30.glBindVertexArray(0);
-
-		fontShader.stop();
+		combinedShader.loadType(GuiShader.TEXT_TYPE);
+		combinedShader.loadTextAttribs(texture.getAttribs());
+		combinedShader.loadOverallAlpha(texture.getOpacity());
+		combinedShader.loadTransformationMatrix(transformationMatrix);
+		combinedShader.loadClippingBounds(texture.getClippingBounds());
 	}
 
 	private void prepareGuiTexture(GuiTexture texture)
 	{
-		boolean hasTexture = false;
-
 		if (texture.getTexture() != GuiTexture.NO_TEXTURE)
 		{
-			GL13.glActiveTexture(GL13.GL_TEXTURE0);
-			GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getTexture());
-			hasTexture = true;
+			combinedShader.loadTexture("textureSampler", texture.getTexture(), 0);
 		}
 
 		Matrix4f transformationMatrix = MatrixGenerator.genTransformMatrix(
@@ -94,37 +60,78 @@ public class GuiRenderer
 				new Euler(0, 0, texture.getRotation()),
 				new Vector3f(texture.getSize().x(), texture.getSize().y(), 1), null);
 
-		GuiTexureShader.loadColor(texture.getColor());
-		GuiTexureShader.loadHasTexture(hasTexture);
-		GuiTexureShader.loadOverallAlpha(texture.getOpacity());
-		GuiTexureShader.loadTransformationMatrix(transformationMatrix);
+		combinedShader.loadType(texture.getType());
+		combinedShader.loadGtColor(texture.getColor());
+		combinedShader.loadFloat("overallAlpha", texture.getOpacity());
+		combinedShader.loadMatrix("transformation", transformationMatrix);
+		combinedShader.loadVector4("v_texture_tc", texture.getTextureCoords());
+		combinedShader.loadClippingBounds(texture.getClippingBounds());
 	}
 
-	public void renderTextures(List<GuiTexture> textures)
+	public void renderGuis(List<GuiRenderable> renderables)
 	{
-		GuiTexureShader.start();
-		GL30.glBindVertexArray(QUAD.vaoId);
-		GL20.glEnableVertexAttribArray(0);
+		combinedShader.start();
+		GUI_QUAD.bind();
+		prepare();
+
+		VaoObject lastMesh = GUI_QUAD;
+
+		for (GuiRenderable renderable : renderables)
+		{
+			VaoObject mesh = null;
+
+			// GuiTexture
+			if (renderable instanceof GuiTexture)
+			{
+				GuiTexture t = (GuiTexture) renderable;
+				prepareGuiTexture(t);
+				mesh = GUI_QUAD;
+
+				if(mesh != lastMesh)
+					mesh.bind();
+
+				GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, mesh.vertexCount);
+			}
+
+			// GuiText
+			if (renderable instanceof GuiText)
+			{
+				GuiText t = (GuiText) renderable;
+				mesh = t.getMesh();
+				prepareGuiText(t);
+
+				if(mesh != lastMesh)
+					mesh.bind();
+
+				GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, mesh.vertexCount);
+			}
+
+			lastMesh = mesh;
+		}
+
+		finish();
+		lastMesh.unbind();
+		combinedShader.stop();
+	}
+
+	public void prepare()
+	{
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GL11.glDisable(GL11.GL_DEPTH_TEST);
+		GL11.glDisable(GL11.GL_CULL_FACE);
+	}
 
-		for (GuiTexture texture : textures)
-		{
-			prepareGuiTexture(texture);
-			GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, QUAD.vertexCount);
-		}
-
+	private void finish()
+	{
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
+		GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glDisable(GL11.GL_BLEND);
-		GL20.glDisableVertexAttribArray(0);
-		GL30.glBindVertexArray(0);
-		GuiTexureShader.stop();
 	}
 
 	public void cleanUp()
 	{
-		GuiTexureShader.cleanUp();
-		fontShader.cleanUp();
+
+		combinedShader.cleanUp();
 	}
 }

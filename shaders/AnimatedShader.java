@@ -7,7 +7,7 @@ import rendering.camera.Camera;
 import rendering.fbo.FboObject;
 import shaders.uniforms.BooleanUniform;
 import shaders.uniforms.VectorArrayUniform;
-import utils.VaoObject;
+import rendering.VaoObject;
 import utils.math.linear.matrix.Matrix4f;
 import utils.math.linear.vector.Vector3f;
 
@@ -148,7 +148,7 @@ public class AnimatedShader extends ShaderProgram
 
 	public void loadShadowMap(FboObject shadowMap, Matrix4f shadowMapConversion, int place)
 	{
-		super.loadTexture("shadowMap", shadowMap.getDepthAttachment(), place);
+		super.loadTexture("shadowMap", shadowMap.getColorAttachment(0), place);
 		super.loadFloat("shadowMapSize", shadowMap.getDimensions().x());
 		super.loadMatrix("shadowSpaceConversion", shadowMapConversion);
 	}

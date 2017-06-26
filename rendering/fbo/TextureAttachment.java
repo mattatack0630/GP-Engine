@@ -1,15 +1,16 @@
 package rendering.fbo;
 
 import org.lwjgl.opengl.GL11;
+import utils.math.linear.vector.Vector2f;
 
 /**
  * Created by mjmcc on 12/9/2016.
  */
-public class TextureAttachment extends Attachment
+public abstract class TextureAttachment extends Attachment
 {
-	public TextureAttachment(int id)
+	public TextureAttachment(Vector2f dimensions)
 	{
-		super(id);
+		super(dimensions);
 	}
 
 	@Override

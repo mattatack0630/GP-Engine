@@ -17,13 +17,13 @@ public class AudioStreamer
 	private static final int MAX_REFILL = 2;
 
 	// Map to hold the pairs of Streams and their sources
-	public static Map<StreamSound, Source> streams;
-	public AudioManager audioManager;
+	public Map<StreamSound, Source> streams;
+	public Map<StreamSound, Source> endedStreams;
 
-	public AudioStreamer(AudioManager audioManager)
+	public AudioStreamer()
 	{
 		streams = new HashMap<>();
-		this.audioManager = audioManager;
+		endedStreams = new HashMap<>();
 	}
 
 	/**
@@ -72,7 +72,6 @@ public class AudioStreamer
 		{
 			Source source = streams.get(streamSound);
 
-
 			// Get processed buffers
 			int buffersProcessed = AL10.alGetSourcei(source.getSourceId(), AL10.AL_BUFFERS_PROCESSED);
 			int refillBuffers = Math.min(buffersProcessed, MAX_REFILL);
@@ -97,8 +96,27 @@ public class AudioStreamer
 				if (streamSound.isLooping())
 					streamData.restart();
 				else
-					audioManager.stop(streamSound, source);
+					endedStreams.put(streamSound, source);
 			}
 		}
+	}
+
+	/**
+	 * @return the streams that have ended and can be cleaned
+	 * */
+	public Map<StreamSound, Source> getEndedStreams()
+	{
+
+		return endedStreams;
+	}
+
+	/**
+	 * Clear the streams ended map.
+	 * Called after the audio manager has cleaned them
+	 * */
+	public void clearEndedStreams()
+	{
+
+		endedStreams.clear();
 	}
 }

@@ -31,7 +31,7 @@ public abstract class CameraKeyController extends CameraController
 	}
 
 	@Override
-	public void tick()
+	public void update()
 	{
 		InputManager inputManager = Engine.getInputManager();
 

@@ -19,6 +19,12 @@ public class StaticRenderObject extends RenderableObject implements Shadowable
 		this.renderData = renderData;
 	}
 
+	public StaticRenderObject(RenderData renderData)
+	{
+		super();
+		this.renderData = renderData;
+	}
+
 	public void updateBounds()
 	{
 		bounds = AABBmm.transform(staticModel.getBoundingBox(), renderData.getTransformMatrix());
@@ -32,6 +38,11 @@ public class StaticRenderObject extends RenderableObject implements Shadowable
 	public RenderData getRenderData()
 	{
 		return renderData;
+	}
+
+	public void setStaticModel(StaticModel staticModel)
+	{
+		this.staticModel = staticModel;
 	}
 
 	@Override
@@ -51,4 +62,5 @@ public class StaticRenderObject extends RenderableObject implements Shadowable
 
 		return s;
 	}
+
 }

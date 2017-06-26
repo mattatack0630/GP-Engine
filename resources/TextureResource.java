@@ -12,14 +12,17 @@ import java.io.IOException;
  */
 public class TextureResource extends Resource
 {
-	public static final String TEXTURES_FOLDER = "res/textures/";
-	public static final String TEXTURES_EXT = ".png";
-
 	public TextureData texData;
 
 	public TextureResource(String name, String location)
 	{
-		super(name, TEXTURES_FOLDER + location + TEXTURES_EXT);
+		super(name, location);
+	}
+
+	@Override
+	public void preloadOnDaemon()
+	{
+
 	}
 
 	public void setTextureParam(int paramName, int paramValue)
@@ -42,14 +45,15 @@ public class TextureResource extends Resource
 	}
 
 	@Override
+	public void unload()
+	{
+		GL11.glDeleteTextures(texData.getId());
+	}
+
+	@Override
 	public void setId()
 	{
 		id = texData.getId();
 	}
 
-	@Override
-	public void cleanUp()
-	{
-		GL11.glDeleteTextures(texData.getId());
-	}
 }

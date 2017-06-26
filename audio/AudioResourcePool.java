@@ -15,7 +15,7 @@ import java.util.List;
 public class AudioResourcePool
 {
 	// max number of source and buffers to generate
-	private static final int SOURCES = 15;
+	private static final int SOURCES = 25;
 	private static final int BUFFERS = 40;
 
 	// Lists used to keep track of sources

@@ -14,6 +14,7 @@ public class IntersectData
 	private Vector3f intersectionPoint;
 	private Vector3f intersectionNormal;
 	private Vector3f minTranslateVector;
+	private IntersectType intersectType;
 
 	public IntersectData()
 	{
@@ -24,6 +25,7 @@ public class IntersectData
 		hasPoint = false;
 		hasNormal = false;
 		isIntersecting = false;
+		intersectType = IntersectType.NONE;
 	}
 
 	public Vector3f getIntersectionPoint()
@@ -48,6 +50,11 @@ public class IntersectData
 		this.hasNormal = true;
 	}
 
+	public void setIntersectType(IntersectType intersectType)
+	{
+		this.intersectType = intersectType;
+	}
+
 	public boolean isIntersecting()
 	{
 		return isIntersecting;
@@ -67,6 +74,11 @@ public class IntersectData
 	public Vector3f getMinTranslateVector()
 	{
 		return minTranslateVector;
+	}
+
+	public IntersectType getIntersectType()
+	{
+		return intersectType;
 	}
 
 	public boolean isHasMTV()

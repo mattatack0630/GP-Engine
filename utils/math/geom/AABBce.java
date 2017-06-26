@@ -15,6 +15,14 @@ public class AABBce extends AABB
 		this.max = new Vector3f();
 	}
 
+	public AABBce(AABB src)
+	{
+		this.center = new Vector3f(src.getCenter());
+		this.extend = new Vector3f(src.getExtends());
+		this.min = new Vector3f();
+		this.max = new Vector3f();
+	}
+
 	@Override
 	public Vector3f getMin()
 	{

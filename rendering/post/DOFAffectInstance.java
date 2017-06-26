@@ -18,9 +18,9 @@ public class DOFAffectInstance extends PostAffectInstance
 
 	@Override
 
-	public FboObject callAffect(FboObject currentScreen)
+	public FboObject callAffect(FboObject inScreen, FboObject outScreen)
 	{
 		PostProcessor.dofAffect.setAffectVars(blurValue, distance);
-		return PostProcessor.dofAffect.processAffect(currentScreen);
+		return PostProcessor.dofAffect.processAffect(inScreen, outScreen);
 	}
 }

@@ -53,6 +53,11 @@ public class SpriteAnimation
 		this.framesPerSecond = fps;
 	}
 
+	public SpriteSequence getSpriteSequence()
+	{
+		return spriteSequence;
+	}
+
 	public void setEndPoint(int endPoint)
 	{
 		this.endPoint = endPoint;

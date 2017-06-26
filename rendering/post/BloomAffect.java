@@ -1,5 +1,7 @@
 package rendering.post;
 
+import org.lwjgl.opengl.Display;
+import rendering.fbo.ColorTextureAttachment;
 import rendering.fbo.FboObject;
 
 /**
@@ -7,9 +9,20 @@ import rendering.fbo.FboObject;
  */
 public class BloomAffect extends PostProcessingEffect
 {
+	private FboObject mutScreen;
 	private float clipValue;
 	private float blurValue;
 	private float addValue;
+
+	public BloomAffect()
+	{
+		mutScreen = new FboObject(Display.getWidth(), Display.getHeight());
+		mutScreen.addColorAttachment(new ColorTextureAttachment(mutScreen.getDimensions()));
+		mutScreen.finishSetup();
+		clipValue = 0.5f;
+		blurValue = 0.3f;
+		addValue = 0.2f;
+	}
 
 	public void setAffectVars(float cv, float bv, float av)
 	{
@@ -25,22 +38,24 @@ public class BloomAffect extends PostProcessingEffect
 	}
 
 	@Override
-	protected FboObject doAffect(FboObject currentScreen)
+	protected FboObject doAffect(FboObject inScreen, FboObject outScreen)
 	{
 		PostProcessor.colorClipAffect.setAffectVars(clipValue);
-		FboObject clippedScreen = PostProcessor.colorClipAffect.processAffect(currentScreen);
-		PostProcessor.blurAffect.setAffectVars(blurValue);
-		FboObject blurredScreen = PostProcessor.blurAffect.processAffect(clippedScreen);
+		PostProcessor.colorClipAffect.processAffect(inScreen, outScreen);
 
-		outputFbo.bindFrameBuffer();
+		PostProcessor.blurAffect.setAffectVars(blurValue);
+		PostProcessor.blurAffect.processAffect(outScreen, mutScreen);
+
+		outScreen.bindFrameBuffer();
+
 		PostProcessor.additionShader.start();
 		PostProcessor.additionShader.loadFloat("ratio", addValue);
-		PostProcessor.additionShader.loadTexture("textureSampler1", currentScreen.getColorAttachment(0), 0);
-		PostProcessor.additionShader.loadTexture("textureSampler2", blurredScreen.getColorAttachment(0), 1);
+		PostProcessor.additionShader.loadTexture("textureSampler1", inScreen.getColorAttachment(0), 0);
+		PostProcessor.additionShader.loadTexture("textureSampler2", mutScreen.getColorAttachment(0), 1);
 		render();
-		outputFbo.unbindFrameBuffer();
 
-		return outputFbo;
+		outScreen.unbindFrameBuffer();
+		return outScreen;
 	}
 
 	@Override
@@ -52,6 +67,5 @@ public class BloomAffect extends PostProcessingEffect
 	@Override
 	public void cleanAffect()
 	{
-		outputFbo.cleanUp();
 	}
 }

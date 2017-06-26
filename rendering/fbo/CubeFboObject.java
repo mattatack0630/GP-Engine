@@ -13,9 +13,9 @@ public class CubeFboObject extends FboObject
 
 	public CubeFboObject(int size)
 	{
-		super(size, size, FboObject.DEPTH_BUFFER);
+		super(size, size);
 		this.cubeMap = new CubeMap(size);
-		this.colorAttachments[colorsAttached++] = new TextureAttachment(cubeMap.getId());
+		//this.colorAttachments[colorsAttached++] = new TextureAttachment(cubeMap.getId());
 
 		bindFrameBuffer();
 		GL11.glDrawBuffer(GL30.GL_COLOR_ATTACHMENT0);
