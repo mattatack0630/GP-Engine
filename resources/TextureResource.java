@@ -37,7 +37,7 @@ public class TextureResource extends Resource
 		try
 		{
 			Texture texture = TextureLoader.getTexture("PNG", new FileInputStream(location));
-			texData = new TextureData(texture.getWidth(), texture.getHeight(), texture.getTextureID());
+			texData = new TextureData(texture.getImageWidth(), texture.getImageHeight(), texture.getTextureID());
 		} catch (IOException e)
 		{
 			e.printStackTrace();

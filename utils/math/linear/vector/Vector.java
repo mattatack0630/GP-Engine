@@ -83,6 +83,13 @@ public class Vector
 		return this;
 	}
 
+	public Vector divElements(Vector other)
+	{
+		Vector.divElements(this, other, this);
+
+		return this;
+	}
+
 	public Vector setMagnitude(float magnitude)
 	{
 		normalize();
@@ -270,6 +277,16 @@ public class Vector
 		return v;
 	}
 
+	public static Vector divElements(Vector left, Vector right, Vector dest)
+	{
+		Vector v = dest == null ? new Vector(new float[left.elements.length]) : dest;
+		checkSame(left, right);
+
+		for (int i = 0; i < left.elements.length; i++)
+			v.elements[i] = left.elements[i] / right.elements[i];
+
+		return v;
+	}
 
 	public static Vector scale(Vector left, float scale, Vector dest)
 	{

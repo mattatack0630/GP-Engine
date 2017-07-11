@@ -211,4 +211,10 @@ public class InputManager
 	{
 		return mouseScrollDelta;
 	}
+
+    public boolean isMouseButtonReleased(int i)
+    {
+    	return mouseReleasing.contains(i);
+    }
+
 }

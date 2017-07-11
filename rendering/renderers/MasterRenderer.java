@@ -1,10 +1,10 @@
 package rendering.renderers;
 
 import engine.Engine;
-import gui.AnimatedGuiTexture;
-import gui.GuiRenderable;
-import gui.GuiTexture;
-import gui.text.GuiText;
+import gui_m4.AnimatedGuiTexture;
+import gui_m4.GuiRenderable;
+import gui_m4.GuiTexture;
+import gui_m4.text.GuiText;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
@@ -26,283 +26,301 @@ import java.util.*;
 
 public class MasterRenderer
 {
-	// counts vertices rendered per frame
-	public static int verticesRendered;
-	public static int modelsRendered;
+    // counts vertices rendered per frame
+    public static int verticesRendered;
+    public static int modelsRendered;
 
-	// Post Processing Stuff
-	private PostProcessor postProcessor = new PostProcessor();
+    // Post Processing Stuff
+    private PostProcessor postProcessor = new PostProcessor();
 
-	// MultiSampled screen fbo, for anti-aliasing affect
-	private MSFboObject msScreen;
+    // MultiSampled screen fbo, for anti-aliasing affect
+    private MSFboObject msScreen;
 
-	// Main screen texture fbos, used to apply post processing before rendering to screen
-	private FboObject screen0;
-	private FboObject screen1;
+    // Main screen texture fbos, used to apply post processing before rendering to screen
+    private FboObject screen0;
+    private FboObject screen1;
 
-	// Picking screen used in picking Manager
-	private FboObject objectFbo;
+    // Picking screen used in picking Manager
+    private FboObject objectFbo;
 
-	// Shadow Map fbo to render a shadow map
-	public static final boolean RENDER_SHADOWS = false;
-	public static final int SHADOW_MAP_SIZE = 512;
-	private ShadowMapRenderer shadowMapRenderer;
-	public FboObject shadowFbo;
+    // Shadow Map fbo to render a shadow map
+    public static final boolean RENDER_SHADOWS = false;
+    public static final int SHADOW_MAP_SIZE = 512;
+    private ShadowMapRenderer shadowMapRenderer;
+    public FboObject shadowFbo;
 
-	// Screen frame clear color
-	public static final Color CLEAR_COLOR = Color.BLACK;
+    // Screen frame clear color
+    public static final Color CLEAR_COLOR = Color.BLACK;
 
-	// Maximum amount of lights that can affect an object
-	public static final int MAX_LIGHTS = 5;
+    // Maximum amount of lights that can affect an object
+    public static final int MAX_LIGHTS = 5;
 
-	private Camera renderCamera;
+    private Camera renderCamera;
 
-	// renderers
-	private ParticleRenderer particleRenderer = new ParticleRenderer();
-	private Sprite2DRenderer spriteRenderer = new Sprite2DRenderer();
-	private CubeMapRenderer cubeMapRenderer = new CubeMapRenderer();
-	private ModelRenderer modelRenderer = new ModelRenderer();
-	private GuiRenderer guiRenderer = new GuiRenderer();
+    // renderers
+    private ParticleRenderer particleRenderer = new ParticleRenderer();
+    private Sprite2DRenderer spriteRenderer = new Sprite2DRenderer();
+    private CubeMapRenderer cubeMapRenderer = new CubeMapRenderer();
+    private ModelRenderer modelRenderer = new ModelRenderer();
+    private GuiRenderer guiRenderer = new GuiRenderer();
 
-	// Renderable Object lists
-	private List<SpriteRenderObject> spriteRenderables = new ArrayList<>();
-	private List<StaticRenderObject> staticRenderables = new ArrayList<>();
-	private List<AnimatedRenderObject> animatedRenderables = new ArrayList<>();
-	private Map<Integer, List<ParticleRenderData>> particles = new HashMap<>();
+    // Renderable Object lists
+    private List<SpriteRenderObject> spriteRenderables = new ArrayList<>();
+    private List<StaticRenderObject> staticRenderables = new ArrayList<>();
+    private List<AnimatedRenderObject> animatedRenderables = new ArrayList<>();
+    private Map<Integer, List<ParticleRenderData>> particles = new HashMap<>();
 
-	private List<PostAffectInstance> postAffects = new ArrayList<>();
-	private LinkedList<GuiRenderable> guiRenderables = new LinkedList<>();
-	private List<Light> lights = new ArrayList<>();
+    private List<PostAffectInstance> postAffects = new ArrayList<>();
+    private LinkedList<GuiRenderable> guiRenderables = new LinkedList<>();
+    private List<Light> lights = new ArrayList<>();
 
-	public MasterRenderer(Camera camera)
-	{
-		msScreen = new MSFboObject(Display.getWidth(), Display.getHeight());
-		msScreen.addColorAttachment(new ColorBufferAttachmentMS(msScreen.getDimensions()));
-		msScreen.addColorAttachment(new ColorBufferAttachmentMS(msScreen.getDimensions()));
-		msScreen.setDepthAttachment(new DepthBufferAttachmentMS(msScreen.getDimensions()));
-		msScreen.finishSetup();
+    public MasterRenderer(Camera camera)
+    {
+        msScreen = new MSFboObject(Display.getWidth(), Display.getHeight());
+        msScreen.addColorAttachment(new ColorBufferAttachmentMS(msScreen.getDimensions()));
+        msScreen.addColorAttachment(new ColorBufferAttachmentMS(msScreen.getDimensions()));
+        msScreen.setDepthAttachment(new DepthBufferAttachmentMS(msScreen.getDimensions()));
+        msScreen.finishSetup();
 
-		screen0 = new FboObject(Display.getWidth(), Display.getHeight());
-		screen0.addColorAttachment(new ColorTextureAttachment(screen0.getDimensions()));
-		screen0.setDepthAttachment(new DepthTextureAttachment(screen0.getDimensions()));
-		screen0.finishSetup();
+        screen0 = new FboObject(Display.getWidth(), Display.getHeight());
+        screen0.addColorAttachment(new ColorTextureAttachment(screen0.getDimensions()));
+        screen0.setDepthAttachment(new DepthTextureAttachment(screen0.getDimensions()));
+        screen0.finishSetup();
 
-		screen1 = new FboObject(Display.getWidth(), Display.getHeight());
-		screen1.addColorAttachment(new ColorTextureAttachment(screen1.getDimensions()));
-		screen1.setDepthAttachment(new DepthTextureAttachment(screen1.getDimensions()));
-		screen1.finishSetup();
+        screen1 = new FboObject(Display.getWidth(), Display.getHeight());
+        screen1.addColorAttachment(new ColorTextureAttachment(screen1.getDimensions()));
+        screen1.setDepthAttachment(new DepthTextureAttachment(screen1.getDimensions()));
+        screen1.finishSetup();
 
-		objectFbo = new FboObject(Display.getWidth(), Display.getHeight());
-		objectFbo.addColorAttachment(new ColorTextureAttachment(objectFbo.getDimensions()));
-		objectFbo.finishSetup();
+        objectFbo = new FboObject(Display.getWidth(), Display.getHeight());
+        objectFbo.addColorAttachment(new ColorTextureAttachment(objectFbo.getDimensions()));
+        objectFbo.finishSetup();
 
-		shadowFbo = new FboObject(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
-		shadowFbo.addColorAttachment(new ColorTextureAttachment(shadowFbo.getDimensions(), GL30.GL_RG32F));
-		shadowFbo.setDepthAttachment(new DepthTextureAttachment(shadowFbo.getDimensions()));
-		shadowFbo.finishSetup();
+        shadowFbo = new FboObject(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+        shadowFbo.addColorAttachment(new ColorTextureAttachment(shadowFbo.getDimensions(), GL30.GL_RG32F));
+        shadowFbo.setDepthAttachment(new DepthTextureAttachment(shadowFbo.getDimensions()));
+        shadowFbo.finishSetup();
 
-		shadowMapRenderer = new ShadowMapRenderer(shadowFbo);
+        shadowMapRenderer = new ShadowMapRenderer(shadowFbo);
 
-		renderCamera = camera;
+        renderCamera = camera;
 
-		// OpenGL prep
-		GL11.glEnable(GL11.GL_CULL_FACE);
-		GL11.glCullFace(GL11.GL_BACK);
-	}
+        // OpenGL prep
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glCullFace(GL11.GL_BACK);
+    }
 
-	/***
-	 * Main rendering method
-	 ***/
-	public void render()
-	{
-		// Render shadow map
-		if (RENDER_SHADOWS) shadowMapRenderer.render(renderCamera, lights.get(0)); // set sun later
-		Matrix4f shadowMapConversion = shadowMapRenderer.getConversionMat();
+    /***
+     * Main rendering method
+     ***/
+    public void render()
+    {
+        // Render shadow map
+        if (RENDER_SHADOWS) shadowMapRenderer.render(renderCamera, lights.get(0)); // set sun later
+        Matrix4f shadowMapConversion = shadowMapRenderer.getConversionMat();
 
 		/*
-		postProcessor.prepare();
+        postProcessor.prepare();
 		PostProcessor.blurAffect.setAffectVars(.2f);
 		PostProcessor.blurAffect.processAffect(shadowFbo, shadowFbo);
 		postProcessor.finish();
 		*/
 
-		// Get/Generate environment map(s)
-		CubeTextureResource environmentRes = Engine.getResourceManager().getResource("sky");
-		CubeMap environmentMap = environmentRes.getCubeMap();
+        // Get/Generate environment map(s)
+        CubeTextureResource environmentRes = Engine.getResourceManager().getResource("sky");
+        CubeMap environmentMap = environmentRes.getCubeMap();
 
-		// Renders to a anti-aliasing msFbo
-		prepare();
+        // Renders to a anti-aliasing msFbo
+        prepare();
 
-		cubeMapRenderer.renderCubeMap(environmentMap, renderCamera);
-		modelRenderer.renderAnimatedModels(animatedRenderables, lights, environmentMap, renderCamera, shadowFbo, shadowMapConversion);
-		modelRenderer.renderStaticModels(staticRenderables, lights, environmentMap, renderCamera, shadowFbo, shadowMapConversion);
-		spriteRenderer.render(spriteRenderables, lights, renderCamera);
-		particleRenderer.renderParticles(particles, renderCamera);
+        cubeMapRenderer.renderCubeMap(environmentMap, renderCamera);
+        modelRenderer.renderAnimatedModels(animatedRenderables, lights, environmentMap, renderCamera, shadowFbo, shadowMapConversion);
+        modelRenderer.renderStaticModels(staticRenderables, lights, environmentMap, renderCamera, shadowFbo, shadowMapConversion);
+        spriteRenderer.render(spriteRenderables, lights, renderCamera);
+        particleRenderer.renderParticles(particles, renderCamera);
 
-		// Resolves msFbo and copies it to the screen texture
-		msScreen.resolveTo(0, screen0);
+        // Resolves msFbo and copies it to the screen texture
+        msScreen.resolveTo(0, screen0);
 
-		// Resolves msFbo and copies picking attachment to the picking texture
-		msScreen.resolveTo(1, objectFbo);
+        // Resolves msFbo and copies picking attachment to the picking texture
+        msScreen.resolveTo(1, objectFbo);
 
-		// Do Post processing on screen texture
-		doPostProcessing();
+        // Do Post processing on screen texture
+        doPostProcessing();
 
-		// Render gui
-		guiRenderer.renderGuis(guiRenderables);
+        // Render gui
+        guiRenderer.renderGuis(guiRenderables);
 
-		// Clear lists for next render, possibly change later?
-		postAffects.clear();
-		animatedRenderables.clear();
-		staticRenderables.clear();
-		spriteRenderables.clear();
-		guiRenderables.clear();
-		particles.clear();
-		lights.clear();
+        // Clear lists for next render, possibly change later?
+        postAffects.clear();
+        animatedRenderables.clear();
+        staticRenderables.clear();
+        spriteRenderables.clear();
+        guiRenderables.clear();
+        particles.clear();
+        lights.clear();
 
-		//if (Engine.getTime() % 1.0f < 0.01f)
-		//	System.out.println("Rendered : " + verticesRendered + " vertices, " + modelsRendered + " models");
-		verticesRendered = 0;
-		modelsRendered = 0;
-	}
+        //if (Engine.getTime() % 1.0f < 0.01f)
+        //	System.out.println("Rendered : " + verticesRendered + " vertices, " + modelsRendered + " models");
+        verticesRendered = 0;
+        modelsRendered = 0;
+    }
 
-	private void prepare()
-	{
-		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-		GL11.glEnable(GL11.GL_BLEND);
+    private void prepare()
+    {
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glEnable(GL11.GL_BLEND);
 
-		msScreen.bindFrameBuffer();
-		msScreen.clear(CLEAR_COLOR);
-	}
+        msScreen.bindFrameBuffer();
+        msScreen.clear(CLEAR_COLOR);
+    }
 
-	private void doPostProcessing()
-	{
-		postProcessor.prepare();
+    private void doPostProcessing()
+    {
+        postProcessor.prepare();
 
-		FboObject inScreen = screen1;
-		FboObject outScreen = screen0;
+        FboObject inScreen = screen1;
+        FboObject outScreen = screen0;
 
-		for (PostAffectInstance instance : postAffects)
-		{
-			inScreen = inScreen == screen0 ? screen1 : screen0;
-			outScreen = outScreen == screen0 ? screen1 : screen0;
-			instance.callAffect(inScreen, outScreen);
-		}
+        for (PostAffectInstance instance : postAffects)
+        {
+            inScreen = inScreen == screen0 ? screen1 : screen0;
+            outScreen = outScreen == screen0 ? screen1 : screen0;
+            instance.callAffect(inScreen, outScreen);
+        }
 
-		postProcessor.renderToDisplay(outScreen);
-		postProcessor.finish();
-	}
+        postProcessor.renderToDisplay(outScreen);
+        postProcessor.finish();
+    }
 
-	public void cleanUp()
-	{
-		screen0.cleanUp();
-		screen1.cleanUp();
-		msScreen.cleanUp();
-		objectFbo.cleanUp();
-		guiRenderer.cleanUp();
-		modelRenderer.cleanUp();
-		spriteRenderer.cleanUp();
-		particleRenderer.cleanUp();
-		shadowMapRenderer.cleanUp();
-	}
+    public void cleanUp()
+    {
+        screen0.cleanUp();
+        screen1.cleanUp();
+        msScreen.cleanUp();
+        objectFbo.cleanUp();
+        guiRenderer.cleanUp();
+        modelRenderer.cleanUp();
+        spriteRenderer.cleanUp();
+        particleRenderer.cleanUp();
+        shadowMapRenderer.cleanUp();
+    }
 
-	/***
-	 * Render Object Processing
-	 ***/
+    /***
+     * Render Object Processing
+     ***/
 
-	public void processParticle(Particle p)
-	{
-		List<ParticleRenderData> batch = particles.get(p.getTextureId());
+    public void processParticle(Particle p)
+    {
+        List<ParticleRenderData> batch = particles.get(p.getTextureId());
 
-		if (batch == null)
-		{
-			batch = new ArrayList<>();
-			particles.put(p.getTextureId(), batch);
-		}
+        if (batch == null)
+        {
+            batch = new ArrayList<>();
+            particles.put(p.getTextureId(), batch);
+        }
 
-		batch.add(p.getRenderData());
-	}
+        batch.add(p.getRenderData());
+    }
 
-	public void processGuiText(GuiText text)
-	{
+    public void processGuiText(GuiText text)
+    {
 
-		Sorter.dynamicSort(guiRenderables, text);
-	}
+        Sorter.dynamicSort(guiRenderables, text);
+    }
 
-	public void processLightSource(Light light)
-	{
-		lights.add(light);
+    public void processLightSource(Light light)
+    {
+        lights.add(light);
 
-	}
+    }
 
-	public void processGuiTexture(GuiTexture guiTexture)
-	{
+    public void processGuiTexture(GuiTexture guiTexture)
+    {
 
-		Sorter.dynamicSort(guiRenderables, guiTexture);
-	}
+        Sorter.dynamicSort(guiRenderables, guiTexture);
+    }
 
+    /**
+     * Use this to place a stack of renderables all on a specific layer.
+     * This method expects that the stack is sorted (In render last-element first order).
+     * This method basically treats the stack as one big renderable on the layer specified
+     */
+    public void processGuiRenderableStack(List<GuiRenderable> renderableStack, float layer)
+    {
+        if (renderableStack.size() > 0)
+        {
+            // Just the simplest way to do it
+            GuiRenderable layerHolder = new GuiRenderable(-1);
+            layerHolder.setRenderLevel(layer);
 
-	public void processAnimatedGuiTexture(AnimatedGuiTexture guiTexture)
-	{
-		guiTexture.updateTexture();
-		processGuiTexture(guiTexture.getTexture());
-	}
+            int pred = Sorter.binaryFindPred(guiRenderables,  layerHolder);
 
-	public void processPostAffect(PostAffectInstance instance)
-	{
-		postAffects.add(instance);
+            guiRenderables.addAll(pred, renderableStack);
+        }
+    }
 
-	}
+    public void processAnimatedGuiTexture(AnimatedGuiTexture guiTexture)
+    {
+        guiTexture.updateTexture();
+        processGuiTexture(guiTexture.getTexture());
+    }
 
-	public void processSpriteModel(SpriteRenderObject renderObject)
-	{
-		spriteRenderables.add(renderObject);
+    public void processPostAffect(PostAffectInstance instance)
+    {
+        postAffects.add(instance);
 
-	}
+    }
 
-	public void processStaticModel(StaticRenderObject renderObject)
-	{
-		RenderData renderData = renderObject.getRenderData();
-		renderData.updateMatrix();
+    public void processSpriteModel(SpriteRenderObject renderObject)
+    {
+        spriteRenderables.add(renderObject);
 
-		AABB bounds = renderObject.getUpdatedBoundingBox();
+    }
 
-		if (!renderData.shouldCheckBounds() || renderCamera.inView(bounds))
-		{
-			Vector3f subDist = Vector3f.sub(renderCamera.getPosition(), renderData.getPosition(), null);
-			renderObject.setDistToCamera(subDist.lengthSquared());
-			Sorter.dynamicSort(staticRenderables, renderObject);
-		}
+    public void processStaticModel(StaticRenderObject renderObject)
+    {
+        RenderData renderData = renderObject.getRenderData();
+        renderData.updateMatrix();
 
-		if (RENDER_SHADOWS)
-			shadowMapRenderer.addShadowable(renderObject);
-	}
+        AABB bounds = renderObject.getUpdatedBoundingBox();
 
-	public void processAnimatedModel(AnimatedRenderObject renderObject)
-	{
-		RenderData renderData = renderObject.getRenderData();
-		renderData.updateMatrix();
+        if (!renderData.shouldCheckBounds() || renderCamera.inView(bounds))
+        {
+            Vector3f subDist = Vector3f.sub(renderCamera.getPosition(), renderData.getPosition(), null);
+            renderObject.setDistToCamera(subDist.lengthSquared());
+            Sorter.dynamicSort(staticRenderables, renderObject);
+        }
 
-		AABB bounds = renderObject.getUpdatedBoundingBox();
+        if (RENDER_SHADOWS)
+            shadowMapRenderer.addShadowable(renderObject);
+    }
 
-		if (!renderData.shouldCheckBounds() || renderCamera.inView(bounds))
-		{
-			Vector3f subDist = Vector3f.sub(renderCamera.getPosition(), renderData.getPosition(), null);
-			renderObject.setDistToCamera(subDist.lengthSquared());
-			Sorter.dynamicSort(animatedRenderables, renderObject);
-		}
+    public void processAnimatedModel(AnimatedRenderObject renderObject)
+    {
+        RenderData renderData = renderObject.getRenderData();
+        renderData.updateMatrix();
 
-		if (RENDER_SHADOWS)
-			shadowMapRenderer.addShadowable(renderObject);
-	}
+        AABB bounds = renderObject.getUpdatedBoundingBox();
 
-	public FboObject getObjectFbo()
-	{
-		return objectFbo;
-	}
+        if (!renderData.shouldCheckBounds() || renderCamera.inView(bounds))
+        {
+            Vector3f subDist = Vector3f.sub(renderCamera.getPosition(), renderData.getPosition(), null);
+            renderObject.setDistToCamera(subDist.lengthSquared());
+            Sorter.dynamicSort(animatedRenderables, renderObject);
+        }
 
-	public void setRenderCamera(Camera renderCamera)
-	{
-		this.renderCamera = renderCamera;
-	}
+        if (RENDER_SHADOWS)
+            shadowMapRenderer.addShadowable(renderObject);
+    }
+
+    public FboObject getObjectFbo()
+    {
+        return objectFbo;
+    }
+
+    public void setRenderCamera(Camera renderCamera)
+    {
+        this.renderCamera = renderCamera;
+    }
 }

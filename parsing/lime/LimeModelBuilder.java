@@ -3,8 +3,8 @@ package parsing.lime;
 import animation.Bone;
 import models.RenderMaterial;
 import parsing.utils.ParsingUtils;
-import utils.VaoLoader;
 import rendering.VaoObject;
+import utils.VaoLoader;
 import utils.math.linear.vector.Vector4f;
 
 import java.util.ArrayList;

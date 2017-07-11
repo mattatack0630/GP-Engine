@@ -3,10 +3,8 @@ package engine;
 import audio.AudioManager;
 import audio.AudioResourcePool;
 import enitities.EntityManager;
-import gui.GuiManager;
-import gui.text.FontLoader;
-import gui.text.TextMeshGenerator;
-import gui_m3.GuiElementParser;
+import gui_m4.text.FontLoader;
+import gui_m4.text.TextMeshGenerator;
 import input.InputManager;
 import input.picker.PickingManager;
 import org.lwjgl.opengl.Display;
@@ -31,7 +29,6 @@ public class Engine
 
 	private static MasterRenderer renderer;
 
-	private static GuiManager guiManager;
 	private static InputManager inputManager;
 	private static AudioManager audioManager;
 	private static EntityManager entityManager;
@@ -56,14 +53,12 @@ public class Engine
 		FontLoader.init();
 		AudioManager.createOpenAL();
 		AudioResourcePool.initResources();
-		GuiElementParser.init();
 
 		resourceManager = new ResourceManager();
 		pickingManager = new PickingManager();
 		stateManager = new GameStateManager();
 		audioManager = new AudioManager();
 		inputManager = new InputManager();
-		guiManager = new GuiManager();
 
 		camera = new PerspectiveCamera(0.1f, 1000f, (float) 70);
 		cameraController = new CameraLinearKeyController(camera);
@@ -76,6 +71,9 @@ public class Engine
 
 		Gizmos3D.init(renderer);
 		Trinket2D.init(renderer);
+
+		// Testing
+		TestGuiTheme.init();
 	}
 
 	/**
@@ -107,7 +105,6 @@ public class Engine
 		stateManager.update();
 		entityManager.update();
 		audioManager.update();
-		guiManager.update();
 
 		cameraController.update();
 		camera.update();
@@ -125,7 +122,6 @@ public class Engine
 	{
 		stateManager.render(renderer);
 		entityManager.render(renderer);
-		guiManager.render(renderer);
 		renderer.render();
 
 		DisplayManager.updateDisplay();
@@ -209,11 +205,6 @@ public class Engine
 	public static MasterRenderer getRenderManager()
 	{
 		return renderer;
-	}
-
-	public static GuiManager getGuiManager()
-	{
-		return guiManager;
 	}
 
 	public static float getTime()

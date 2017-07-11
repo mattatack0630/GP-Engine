@@ -1,8 +1,8 @@
 package rendering.renderers;
 
-import gui.GuiRenderable;
-import gui.GuiTexture;
-import gui.text.GuiText;
+import gui_m4.GuiRenderable;
+import gui_m4.GuiTexture;
+import gui_m4.text.GuiText;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import rendering.RenderData;

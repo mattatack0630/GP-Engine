@@ -1,6 +1,6 @@
 package shaders;
 
-import gui.text.TextAttributes;
+import gui_m4.text.TextAttributes;
 import rendering.Color;
 import rendering.DisplayManager;
 import utils.math.linear.matrix.Matrix4f;

@@ -73,7 +73,10 @@ public class Maths
 
 	public static float map(float s, float a0, float a1, float b0, float b1)
 	{
-		return (s - a0) / (a1 - a0) * (b1 - b0) + b0;
+		if(a0 == a1)
+			return 0;
+		else
+			return (s - a0) / (a1 - a0) * (b1 - b0) + b0;
 	}
 
 	public static float squared(float v)

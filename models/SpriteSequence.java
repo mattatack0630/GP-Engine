@@ -3,6 +3,9 @@ package models;
 import utils.math.linear.vector.Vector2f;
 import utils.math.linear.vector.Vector4f;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by mjmcc on 1/6/2017.
  */
@@ -17,6 +20,21 @@ public class SpriteSequence
         this.sheet = sheet;
         this.tiles = tiles;
         this.cellOnIndex = 0;
+    }
+
+    public int[] getTiles()
+    {
+        return tiles;
+    }
+
+    public SpriteSheet getSheet()
+    {
+        return sheet;
+    }
+
+    public int getTileCount()
+    {
+        return tiles.length;
     }
 
     public void setTile(int[] cells)
@@ -52,19 +70,16 @@ public class SpriteSequence
         return sheet.getTileMinMax(coord);
     }
 
-    public SpriteSheet getSheet()
+    public static List<Vector4f> toTextureCoordList(SpriteSequence spriteSequence)
     {
-        return sheet;
-    }
+        List<Vector4f> coords = new ArrayList<>(spriteSequence.getTileCount());
 
-    public int getTileCount()
-    {
-        return tiles.length;
-    }
+        for (int index : spriteSequence.getTiles())
+        {
+            coords.add(spriteSequence.getTileMinMax(index));
+        }
 
-    public int[] getTiles()
-    {
-        return tiles;
+        return coords;
     }
 
     public static SpriteSequence fromHRange(SpriteSheet sheet, int i, int j)

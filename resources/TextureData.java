@@ -7,41 +7,41 @@ import java.nio.ByteBuffer;
  */
 public class TextureData
 {
-	private ByteBuffer byteBuffer;
-	private float height;
-	private float width;
-	private int id;
+    private ByteBuffer byteBuffer;
+    private float height; // in pix
+    private float width; // in pix
+    private int id;
 
-	public TextureData(float width, float height, int id)
-	{
-		this(width, height, id, null);
-	}
+    public TextureData(float width, float height, int id)
+    {
+        this(width, height, id, null);
+    }
 
-	public TextureData(float width, float height, int id, ByteBuffer byteBuffer)
-	{
-		this.byteBuffer = byteBuffer;
-		this.height = height;
-		this.width = width;
-		this.id = id;
-	}
+    public TextureData(float width, float height, int id, ByteBuffer byteBuffer)
+    {
+        this.byteBuffer = byteBuffer;
+        this.height = height;
+        this.width = width;
+        this.id = id;
+    }
 
-	public int getId()
-	{
-		return id;
-	}
+    public int getId()
+    {
+        return id;
+    }
 
-	public float getHeight()
-	{
-		return height;
-	}
+    public float getHeight()
+    {
+        return height;
+    }
 
-	public float getWidth()
-	{
-		return width;
-	}
+    public float getWidth()
+    {
+        return width;
+    }
 
-	public ByteBuffer getByteBuffer()
-	{
-		return byteBuffer;
-	}
+    public ByteBuffer getByteBuffer()
+    {
+        return byteBuffer;
+    }
 }

@@ -1,7 +1,7 @@
 package input.picker;
 
 import engine.Engine;
-import gui.GuiTexture;
+import gui_m4.GuiTexture;
 import input.MouseRay;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;

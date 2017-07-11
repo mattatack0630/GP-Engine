@@ -1,9 +1,9 @@
 package rendering.renderers;
 
 import engine.Engine;
-import gui.GuiTexture;
-import gui.text.GuiText;
-import gui.text.TextAttributes;
+import gui_m4.GuiTexture;
+import gui_m4.text.GuiText;
+import gui_m4.text.TextAttributes;
 import rendering.Color;
 import rendering.DisplayManager;
 import resources.TextureResource;

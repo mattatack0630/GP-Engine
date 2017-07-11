@@ -1,7 +1,7 @@
 package resources;
 
-import gui.text.Font;
-import gui.text.FontLoader;
+import gui_m4.text.Font;
+import gui_m4.text.FontLoader;
 
 /**
  * Created by mjmcc on 11/22/2016.
